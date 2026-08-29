@@ -1,0 +1,8 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "docs-keeper",
+  "description": "リポジトリごとの規約ファイル (docs/.docs-policy.yml) に沿って、README / CLAUDE.md / docs 配下の md を最新・整頓・簡潔に保つ。",
+  "version": "0.1.0",
+  "author": { "name": "kosei-matsuzaki", "email": "sunlight.michishirube@gmail.com" },
+  "keywords": ["documentation", "markdown", "claude-md", "maintenance"]
+}

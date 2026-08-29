@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "kosei-plugins",
+  "description": "個人開発リポジトリ向けの Claude Code プラグイン置き場",
+  "owner": {
+    "name": "kosei-matsuzaki",
+    "email": "sunlight.michishirube@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "docs-keeper",
+      "description": "README / CLAUDE.md / docs 配下の md を、規約ファイルに沿って最新・整頓・簡潔に保つ。停止時に未反映を指摘し、置き場所の逸脱を止め、実装履歴を archive へ送る。",
+      "author": { "name": "kosei-matsuzaki" },
+      "category": "documentation",
+      "source": "./docs-keeper"
+    }
+  ]
+}
