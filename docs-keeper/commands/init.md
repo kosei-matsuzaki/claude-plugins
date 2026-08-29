@@ -25,8 +25,19 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/dk.py" check
 
 ## 2. 規約を組み立てる
 
-雛形は `${CLAUDE_PLUGIN_ROOT}/skills/docs-policy/references/default-policy.yml`。
-これを土台に、このリポジトリの実態へ寄せる。skill `docs-policy` の
+**まず雛形を選ぶ。** `${CLAUDE_PLUGIN_ROOT}/skills/docs-policy/references/` の下:
+
+| 雛形 | 選ぶ目安 |
+|---|---|
+| `default-policy.yml` | アプリ・ライブラリ・道具。**出すもの**があり、利用者がいる |
+| `research-policy.yml` | シミュレーション・機械学習・分析。**回して結果を見る**のが主な仕事 |
+
+見分け方: `experiments/` `notebooks/` `configs/` `data/` `results/` があるか、
+`pyproject.toml` / `requirements.txt` に numpy・scipy・torch・sklearn・pandas の
+たぐいが入っていれば research 寄り。**迷ったら利用者に聞く。**
+研究側の肝は「実験結果を archive へ送らない」こと(理由は skill `docs-policy`)。
+
+選んだ雛形を土台に、このリポジトリの実態へ寄せる。skill `docs-policy` の
 「書くときの原則」に従う。
 
 - **`layout`**: 実在する md とディレクトリだけ書く。雛形にあって実在しないものは消す。
@@ -41,7 +52,12 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/dk.py" check
   - `why` は「設計の核が動いた」のように、**指摘を読んだとき何を直せばいいか分かる**一言
   - 迷ったものは入れない。鳴りすぎる規約は読まれなくなる
 - **`guard.scope`**: `docs/**` と `*.md`。アプリのソース内 README を巻き込まないこと
-  (`app/README.md` などが既にあるなら scope から外れていることを確かめる)
+  (`app/README.md` などが既にあるなら scope から外れていることを確かめる)。
+  notebook の置き場所も見張るなら `guard.extensions` に `".ipynb"` を足す
+  (ただし **notebook が自動生成される場所があるなら足さない**)
+- **`archive`**: `index` を必ず置く(記録は引けなければ無いのと同じ)。
+  `rotate.by` はリリースがあるものなら `version`、無ければ `year`。
+  `rotate.max_lines` は**いちばん長い記録の 1.2 倍**から
 
 ## 3. 見せてから書く
 

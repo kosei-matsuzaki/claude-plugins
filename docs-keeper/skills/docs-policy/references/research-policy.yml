@@ -1,0 +1,82 @@
+# docs/.docs-policy.yml — 研究・実験リポジトリ向けの雛形
+#
+# 数値計算・シミュレーション・機械学習など、「回して結果を見る」のが主な仕事の
+# リポジトリ用。アプリ向けの default-policy.yml との違いは 2 つ:
+#
+#   1. release / changelog が無い。代わりに reproduce(再現手順)がある
+#   2. 実験結果は archive へ送らない。results.md と experiments/ に生きたまま置く
+#
+# 実装履歴(コードをどう直したか)は捨ててよいが、実験結果は捨てられない。
+# 「この条件でこうなった」は、あとで**比べる**ために残すものだから。
+
+version: 1
+
+index: docs/README.md
+
+layout:
+  - path: README.md
+    role: 何を解こうとしているか。いまの結果のさわり
+  - path: CLAUDE.md
+    role: 環境・決めごと・既知の罠。作業前に読む
+  - path: docs/README.md
+    role: 索引。どれを読むか
+  - path: docs/method.md
+    role: 何をどう解くか。定式化・前提・置いた近似とその理由
+  - path: docs/results.md
+    role: いまの結果。全試行を 1 行ずつの表で持つ。**生きている比較対象**
+  - path: docs/reproduce.md
+    role: 再現手順。データの版・乱数の種・環境・コマンド
+  - path: docs/TODO.md
+    role: 残作業だけ
+  - path: docs/experiments/
+    role: 1 試行 1 ファイル。条件・出力・気づき。results.md の各行の裏づけ
+  - path: docs/archive/
+    role: 記録。打ち切った系統・没案。**いまの前提として読まない**
+
+limits:
+  CLAUDE.md: 300
+  README.md: 150
+  docs/README.md: 150
+  docs/method.md: 400
+  docs/results.md: 300          # 伸びたら「表に畳めていない」しるし
+  docs/reproduce.md: 200
+  docs/TODO.md: 120
+  docs/experiments/**: 200      # 1 試行が 200 行を超えたら、それは論文であって記録ではない
+  default: 400
+
+# 「ここを触ったら、ここを直す」の対応表。
+# 研究リポジトリで効くのは「回したのに結果を書いていない」を捕まえること。
+watch:
+  - source: ["src/**", "*.py"]
+    docs: ["docs/method.md"]
+    why: 解き方そのものが動いた
+
+  - source: ["configs/**", "params/**", "*.yaml", "*.toml"]
+    docs: ["docs/reproduce.md"]
+    why: 条件が変わった。再現手順が古くなっていないか確かめる
+
+  - source: ["experiments/**", "notebooks/**", "results/**"]
+    docs: ["docs/results.md"]
+    why: 回したのに、結果の表に行が増えていない
+
+archive:
+  dir: docs/archive/
+  index: docs/archive/README.md
+  rotate:
+    by: year
+    max_lines: 1500
+  rules:
+    - 実装履歴・環境構築の試行錯誤・没案は archive/ にだけ書く
+    - "**実験結果は archive へ送らない。** results.md の表に残す。行が増えるのは正しい"
+    - archive へ送るのは「その系統を追うのをやめた」と決めたときだけ。やめた理由を必ず書く
+    - archive の各項目には日付を付ける。割ったら archive の索引に 1 行足す
+
+notify:
+  enabled: true
+  min_source_edits: 1
+
+guard:
+  enabled: true
+  scope: ["docs/**", "*.md"]
+  extensions: [".md"]   # notebook も置き場所を見張るなら ".ipynb" を足す
+  allow: []

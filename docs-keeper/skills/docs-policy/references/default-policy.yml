@@ -54,10 +54,21 @@ watch:
 # 記録の扱い。
 archive:
   dir: docs/archive/
+  index: docs/archive/README.md   # 記録の索引。無いと 1000 行を grep することになる
+
+  # 割り方。記録は「短く保つ」のではなく「引けるようにする」のが目的。
+  #   by: year    … archive/2026-H1.md のように期間で割る(既定向き)
+  #   by: version … archive/v1.0.md のように版で割る(リリースのあるもの向き)
+  #   by: none    … 割らない
+  rotate:
+    by: year
+    max_lines: 1500   # 1 ファイルがこれを超えたら「割りどき」と言う
+
   rules:
     - 実装履歴・試したこと・没案は archive/ にだけ書く。仕様書と設計書には書かない
     - TODO.md の済んだ項目は archive/work-log.md へ移す
     - archive の各項目には日付を付ける。日付のない記録は後から捨てられない
+    - 割ったら archive の索引に 1 行足す。索引に無い記録は無いのと同じ
 
 # 停止時の指摘。
 notify:
@@ -68,4 +79,5 @@ notify:
 guard:
   enabled: true
   scope: ["docs/**", "*.md"]   # 見張る範囲。アプリのソース内 README は外す
+  extensions: [".md"]          # 見張る拡張子。notebook も見るなら ".ipynb" を足す
   allow: []                    # layout 以外に許す場所があれば

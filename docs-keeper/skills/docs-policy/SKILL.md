@@ -14,7 +14,13 @@ description: リポジトリごとのドキュメント規約 docs/.docs-policy.
 2. `docs/.docs-policy.yaml`
 3. `.claude/docs-policy.yml`
 
-雛形は [references/default-policy.yml](references/default-policy.yml)。
+雛形は 2 つある。**リポジトリの性格で選ぶ。**
+
+| 雛形 | 向き | 特徴 |
+|---|---|---|
+| [default-policy.yml](references/default-policy.yml) | アプリ・ライブラリ・道具 | `release/` と `changelog.md` を持つ |
+| [research-policy.yml](references/research-policy.yml) | シミュレーション・機械学習・分析 | `results.md` `reproduce.md` `experiments/` を持ち、**実験結果を archive へ送らない** |
+
 構成の考え方は [references/structure.md](references/structure.md)。
 
 ## 各項目の意味
@@ -25,9 +31,9 @@ description: リポジトリごとのドキュメント規約 docs/.docs-policy.
 | `layout` | 置き場所と、そこに何を書くか | Write フック / tidy |
 | `limits` | ファイルごとの行数上限 | Stop フック / compact |
 | `watch` | 「ここを触ったらここを直す」の対応表 | Stop フック / sync |
-| `archive` | 記録の置き場所と、archive へ送る決まり | compact |
+| `archive` | 記録の置き場所・索引・割り方と、archive へ送る決まり | Stop フック / compact |
 | `notify` | 停止時に指摘するか、何件から指摘するか | Stop フック |
-| `guard` | 規約にない置き場所への新規 md を差し戻すか | Write フック |
+| `guard` | 規約にない置き場所への新規 md を差し戻すか。`extensions` で notebook も見られる | Write フック |
 
 ## 書くときの原則
 
@@ -40,6 +46,27 @@ description: リポジトリごとのドキュメント規約 docs/.docs-policy.
   全ファイルが赤くなって意味を失う。archive 配下は上限を外すか大きく取る
 - **`role` は一言で書く。**「いまの仕様」「記録。仕様として読まない」のように、
   読み手がそのファイルを開くかどうか判断できる粒度で
+
+## 記録 (`archive`) の扱い
+
+記録は**短く保つものではなく、引けるようにするもの**。1800 行の 1 ファイルは
+grep できるかぎり困らない。困るのは「どこに何があるか分からない」ほう。だから:
+
+- **`archive.index` を必ず置く。** 索引に載っていない記録は、無いのと同じ
+- **`archive.rotate.by` で割る。** `year`(期間)か `version`(版)。
+  `max_lines` を超えると「割りどき」と知らせる。
+  **`archive 送り` とは言わない** — archive にあるものを archive に送れないので
+- **割ったら索引に 1 行足す。** これをしないと割った意味がない
+
+`max_lines` は行数なので、**notebook(セル数で数える)には当たらない**。
+notebook に上限をかけたいときは `limits` にセル数で書く。
+
+### 実験結果は記録ではない
+
+「この条件で回したらこうなった」は**あとで比べるために残すもの**で、
+実装履歴のように捨てられない。archive へ送ると価値が死ぬ。
+表(`results.md`)に生きたまま置き、archive へ送るのは
+**その系統を追うのをやめたときだけ**。research 雛形はこの形になっている。
 
 ## 変更するとき
 

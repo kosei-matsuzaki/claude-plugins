@@ -111,16 +111,43 @@ def line_count(path):
         return 0
 
 
-def all_markdown(root):
+DOC_EXTS = (".md", ".ipynb")
+
+
+def all_docs(root, exts=DOC_EXTS):
     found = []
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS and not d.startswith(".")]
         for name in filenames:
-            if name.lower().endswith(".md"):
+            if name.lower().endswith(tuple(exts)):
                 r = rel(root, os.path.join(dirpath, name))
                 if r and not r.startswith(".."):
                     found.append(r)
     return sorted(found)
+
+
+def doc_size(root, relpath):
+    """(大きさ, 単位)。md は行数、notebook はセル数で数える。"""
+    path = os.path.join(root, relpath)
+    if relpath.lower().endswith(".ipynb"):
+        try:
+            with open(path, encoding="utf-8") as fh:
+                return len(json.load(fh).get("cells") or []), "セル"
+        except Exception:
+            return 0, "セル"
+    return line_count(path), "行"
+
+
+def archive_globs(policy):
+    d = P.opt(policy, "archive.dir")
+    if not isinstance(d, str) or not d:
+        return []
+    return [d if d.endswith("/") else d + "/"]
+
+
+def in_archive(policy, relpath):
+    globs = archive_globs(policy)
+    return bool(globs) and P.matches_any(relpath, globs)
 
 
 def index_targets(root, index_rel):
@@ -236,7 +263,7 @@ def cmd_stop_report():
         targets, text = res
         for t in touched:
             key = "orphan:" + t
-            if key in reported or not t.lower().endswith(".md") or t == idx:
+            if key in reported or not t.lower().endswith(DOC_EXTS) or t == idx:
                 continue
             if not P.matches_any(t, [d for d, _ in P.layout_paths(pol)] or ["docs/**"]):
                 continue
@@ -248,14 +275,21 @@ def cmd_stop_report():
     # 3. 上限を超えて伸びた
     for t in touched:
         key = "limit:" + t
-        if key in reported or not t.lower().endswith(".md"):
+        if key in reported or not t.lower().endswith(DOC_EXTS):
             continue
-        cap = P.limit_for(pol, t)
+        archived = in_archive(pol, t)
+        cap = None
+        if archived and t.lower().endswith(".md"):
+            cap = P.opt(pol, "archive.rotate.max_lines")
+        if not isinstance(cap, int):
+            cap = P.limit_for(pol, t)
         if not isinstance(cap, int):
             continue
-        n = line_count(os.path.join(root, t))
+        n, unit = doc_size(root, t)
         if n > cap:
-            findings.append("・%s が %d 行 (上限 %d)。archive 送りか圧縮どき" % (t, n, cap))
+            # archive にあるものに「archive 送り」は勧めない。割るほうを勧める。
+            advice = "割りどき" if archived else "archive 送りか圧縮どき"
+            findings.append("・%s が %d %s (上限 %d)。%s" % (t, n, unit, cap, advice))
             reported.add(key)
 
     if not findings:
@@ -285,7 +319,7 @@ def emit(message):
 def cmd_guard():
     data = read_hook_input()
     path = (data.get("tool_input") or {}).get("file_path")
-    if not path or not path.lower().endswith(".md"):
+    if not path or not path.lower().endswith(DOC_EXTS):
         return 0
     if os.path.exists(path):          # 既存ファイルの書き換えには口を出さない
         return 0
@@ -293,6 +327,10 @@ def cmd_guard():
     if not ppath or (pol or {}).get("_error"):
         return 0
     if not P.opt(pol, "guard.enabled", True):
+        return 0
+    # 見張る拡張子。notebook は既定では見ない(生成物として作られることがあるため)
+    exts = P.opt(pol, "guard.extensions", [".md"])
+    if not path.lower().endswith(tuple(e.lower() for e in exts)):
         return 0
     r = rel(root, path)
     if not r or r.startswith(".."):   # リポジトリの外は関知しない
@@ -339,16 +377,21 @@ def cmd_check(argv):
     else:
         out.append("policy: %s" % rel(root, ppath))
 
-    mds = all_markdown(root)
+    mds = all_docs(root)
     out.append("")
-    out.append("## md 一覧 (%d 件)" % len(mds))
+    out.append("## ドキュメント一覧 (%d 件)" % len(mds))
     for m in mds:
-        n = line_count(os.path.join(root, m))
-        cap = P.limit_for(pol, m)
+        n, unit = doc_size(root, m)
+        archived = in_archive(pol, m)
+        cap = None
+        if archived and m.lower().endswith(".md"):
+            cap = P.opt(pol, "archive.rotate.max_lines")
+        if not isinstance(cap, int):
+            cap = P.limit_for(pol, m)
         flag = ""
         if isinstance(cap, int) and n > cap:
-            flag = "  ← 上限 %d 超過" % cap
-        out.append("  %5d行  %s%s" % (n, m, flag))
+            flag = "  ← 上限 %d %s" % (cap, "超過。割りどき" if archived else "超過")
+        out.append("  %5d%-3s %s%s" % (n, unit, m, flag))
 
     idx = P.opt(pol, "index")
     res = index_targets(root, idx) if idx else None
@@ -365,7 +408,7 @@ def cmd_check(argv):
         out += ["  " + o for o in orphans] or ["  なし"]
         missing = sorted(
             t for t in targets
-            if t.lower().endswith(".md") and not os.path.exists(os.path.join(root, t))
+            if t.lower().endswith(DOC_EXTS) and not os.path.exists(os.path.join(root, t))
         )
         if missing:
             out.append("")
@@ -382,6 +425,32 @@ def cmd_check(argv):
         out.append("")
         out.append("## 規約にない置き場所: %d 件" % len(stray))
         out += ["  " + s for s in stray] or ["  なし"]
+
+    globs = archive_globs(pol)
+    if globs:
+        arc = [m for m in mds if in_archive(pol, m)]
+        total = sum(doc_size(root, m)[0] for m in arc if m.lower().endswith(".md"))
+        cap = P.opt(pol, "archive.rotate.max_lines")
+        by = P.opt(pol, "archive.rotate.by", "none")
+        out.append("")
+        out.append("## 記録 (%s) %d 件 / 合計 %d 行 / 分け方: %s"
+                   % (globs[0], len(arc), total, by))
+        for m in arc:
+            n, unit = doc_size(root, m)
+            arc_cap = cap if m.lower().endswith(".md") else None
+            flag = "  ← 割りどき" if isinstance(arc_cap, int) and n > arc_cap else ""
+            out.append("  %5d%-3s %s%s" % (n, unit, m, flag))
+        aidx = P.opt(pol, "archive.index")
+        if aidx:
+            res2 = index_targets(root, aidx)
+            if not res2:
+                out.append("  記録の索引 %s が無い。作ると引けるようになる" % aidx)
+            else:
+                t2, text2 = res2
+                miss = [m for m in arc if m != aidx and m not in t2
+                        and os.path.basename(m) not in text2]
+                out.append("  記録の索引 %s に載っていない: %s"
+                           % (aidx, ("%d 件 → %s" % (len(miss), " ".join(miss))) if miss else "なし"))
 
     rules = P.watch_rules(pol)
     if rules:

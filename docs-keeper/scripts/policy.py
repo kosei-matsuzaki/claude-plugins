@@ -243,6 +243,17 @@ def validate(data):
                 if not isinstance(val, list) or not all(isinstance(v, str) for v in val):
                     return "watch[%d].%s は文字列かそのリストで書く" % (i, key)
 
+    rot = data.get("archive", {}).get("rotate") if isinstance(data.get("archive"), dict) else None
+    if rot is not None:
+        if not isinstance(rot, dict):
+            return "archive.rotate はマップで書く"
+        by = rot.get("by")
+        if by is not None and by not in ("year", "version", "none"):
+            return "archive.rotate.by は year / version / none のどれか (%r)" % by
+        ml = rot.get("max_lines")
+        if ml is not None and (not isinstance(ml, int) or isinstance(ml, bool)):
+            return "archive.rotate.max_lines は行数(整数)で書く"
+
     limits = data.get("limits")
     if limits is not None:
         if not isinstance(limits, dict):
