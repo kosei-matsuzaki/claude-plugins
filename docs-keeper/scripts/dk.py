@@ -404,7 +404,7 @@ def cmd_check(argv):
             and os.path.basename(m) not in text
         ]
         out.append("")
-        out.append("## 索引 (%s) に載っていない md: %d 件" % (idx, len(orphans)))
+        out.append("## 索引 (%s) から辿れないもの: %d 件" % (idx, len(orphans)))
         out += ["  " + o for o in orphans] or ["  なし"]
         missing = sorted(
             t for t in targets
