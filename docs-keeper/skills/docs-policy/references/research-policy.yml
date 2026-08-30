@@ -5,6 +5,7 @@
 #
 #   1. release / changelog が無い。代わりに reproduce(再現手順)がある
 #   2. 実験結果は archive へ送らない。results.md と experiments/ に生きたまま置く
+#   3. 「提案・レビュー」と「正本データ」という、仕様でも記録でもない層がある
 #
 # 実装履歴(コードをどう直したか)は捨ててよいが、実験結果は捨てられない。
 # 「この条件でこうなった」は、あとで**比べる**ために残すものだから。
@@ -27,12 +28,17 @@ layout:
   - path: docs/reproduce.md
     role: 再現手順。データの版・乱数の種・環境・コマンド
   - path: docs/TODO.md
-    role: 残作業だけ
+    role: 残作業だけ。**GitHub Issues で管理しているなら、この行ごと消す**
+  - path: docs/design-review.md
+    role: 提案・レビュー。日付つき。**仕様ではない**。実装と食い違ったら仕様が正
   - path: docs/experiments/
     role: 1 試行 1 ファイル。条件・出力・気づき。results.md の各行の裏づけ
   - path: docs/archive/
     role: 記録。打ち切った系統・没案。**いまの前提として読まない**
 
+# 行数の上限。
+# **「正本データ」には上限をかけない。** カリキュラム・特徴量カタログ・辞書のように
+# 中身が増えるのが正しいものは、長さで叱っても意味がない。limits から外すか広く取る。
 limits:
   CLAUDE.md: 300
   README.md: 150
@@ -59,6 +65,14 @@ watch:
     docs: ["docs/results.md"]
     why: 回したのに、結果の表に行が増えていない
 
+  # 正本(md)と実装(コード)が対になっているとき、その同期を見張る。
+  # 例: docs/curriculum.md が正本で src/curriculum.js が実データ、のような関係。
+  # 片方だけ直すと静かにずれるので、watch の使いどころとして強い。
+  # 対がなければこの規則ごと消す。
+  - source: []
+    docs: []
+    why: 正本と実装がずれていないか
+
 archive:
   dir: docs/archive/
   index: docs/archive/README.md
@@ -69,6 +83,7 @@ archive:
     - 実装履歴・環境構築の試行錯誤・没案は archive/ にだけ書く
     - "**実験結果は archive へ送らない。** results.md の表に残す。行が増えるのは正しい"
     - archive へ送るのは「その系統を追うのをやめた」と決めたときだけ。やめた理由を必ず書く
+    - 日付つきの経緯(「08-24 に見つけて 08-27 に撤回した」)は archive。結論だけ仕様に 1 行残す
     - archive の各項目には日付を付ける。割ったら archive の索引に 1 行足す
 
 notify:
