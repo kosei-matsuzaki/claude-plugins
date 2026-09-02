@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "code-keeper",
+  "description": "機械が数え、Claude が読んで判断する。長さ / 層の依存 / 重複 (完全一致しない共通化も) / コメント / デッドコードを候補として出し、read して決めた判断を台帳に残す。",
+  "version": "0.2.0",
+  "author": {
+    "name": "kosei-matsuzaki",
+    "email": "sunlight.michishirube@gmail.com"
+  },
+  "keywords": [
+    "refactoring",
+    "architecture",
+    "maintenance",
+    "code-quality",
+    "duplication"
+  ]
+}

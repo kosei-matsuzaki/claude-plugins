@@ -1,0 +1,82 @@
+# .code-policy.yml — このリポジトリのコード規約(実験するリポジトリ向け)
+#
+# 向き: シミュレーション・機械学習・分析。回して結果を見るのが主な仕事。
+#
+# 研究では、アプリと同じ物差しを当ててはいけないところが 2 つある。
+#
+#   1. 実験ごとの写しは、無理に共通化しない。
+#      条件を変えた版は「似ているが別物」で、共通化すると過去の実験が再現しなくなる。
+#      共通化してよいのは src/ の中(道具)だけ。experiments/ は duplication.ignore に入れる。
+#
+#   2. notebook は下流。src/ が notebook を import し始めたら壊れている。
+#      層としては notebooks を最下流に置き、誰も notebooks に依存させない。
+
+version: 1
+
+scope:
+  include: ["src/**", "experiments/**", "scripts/**", "notebooks/**"]
+  exclude:
+    - "**/*_test.py"
+    - "**/test_*.py"
+    - "**/.ipynb_checkpoints/**"
+    - "**/data/**"
+    - "**/outputs/**"
+
+layers:
+  - name: core
+    path: ["src/**"]
+    role: 再利用する道具。モデル・前処理・評価。実験の条件を持たない
+    allow: []
+
+  - name: experiments
+    path: ["experiments/**"]
+    role: 条件を決めて回す本体。1 実験 1 ファイル。写しがあってよい
+    allow: [core]
+
+  - name: scripts
+    path: ["scripts/**", "bin/**"]
+    role: 手で叩くもの。集計・図・データ取得
+    allow: [core, experiments]
+
+  - name: notebooks
+    path: ["notebooks/**"]
+    role: 手元で見るためのもの。ここを誰かが import したら設計が壊れている
+    allow: [core, experiments]
+
+limits:
+  file_lines:
+    default: 400
+    "src/**": 300            # 道具は短く。実験は長くてよい
+  function_lines: 60
+  nesting: 4
+  params: 8                  # ハイパーパラメータを引数で渡す。ここは広く取る
+  dir_files: 30
+
+comments:
+  min_ratio: 0.05            # 式の根拠・単位・出典。ここを書かないと半年後に読めない
+  max_ratio: 0.45
+  max_block: 25
+  require_for_lines: 30
+
+duplication:
+  min_lines: 10
+  # 実験ごとの写しは残す。共通化するのは src/ の中だけ。
+  ignore: ["experiments/**", "notebooks/**"]
+
+  # 形の似ているものも src/ の中だけで見る。実験は似ていて当たり前。
+  similar: 0.9
+  similar_min_lines: 12
+  similar_max_group: 8
+
+dead:
+  entrypoints: ["experiments/**", "scripts/**", "notebooks/**", "src/**/__init__.py"]
+  ignore: ["**/test_*.py"]
+  symbols: false             # 実験の途中で寝かせている関数が多い。名前では判断しない
+
+notify:
+  enabled: true
+
+guard:
+  enabled: true
+  extensions: [".py"]        # notebook は場所を選ばず作られる。見張らない
+  allow: []

@@ -10,9 +10,20 @@
     {
       "name": "docs-keeper",
       "description": "README / CLAUDE.md / docs 配下の md を、規約ファイルに沿って最新・整頓・簡潔に保つ。停止時に未反映を指摘し、置き場所の逸脱を止め、実装履歴を archive へ送る。",
-      "author": { "name": "kosei-matsuzaki" },
+      "author": {
+        "name": "kosei-matsuzaki"
+      },
       "category": "documentation",
       "source": "./docs-keeper"
+    },
+    {
+      "name": "code-keeper",
+      "description": "コードが伸びる・散る・崩れる・残るのを見張る。機械が候補を出し (形だけ似ている共通化候補も含む)、Claude がコードを読んで直すか決め、判断を台帳に残して同じ指摘を繰り返さない。",
+      "author": {
+        "name": "kosei-matsuzaki"
+      },
+      "category": "code-quality",
+      "source": "./code-keeper"
     }
   ]
 }

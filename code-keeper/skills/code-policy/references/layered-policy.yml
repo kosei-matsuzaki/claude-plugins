@@ -1,0 +1,102 @@
+# .code-policy.yml — このリポジトリのコード規約(層で分ける形)
+#
+# code-keeper が読む。手で直してよい。
+# 書式は YAML の一部だけ(コメント / key: value / 入れ子 / '- ' リスト /
+# インラインリスト [a, b])。アンカーや複数行文字列は使えない。
+#
+# 向き: サーバ・CLI・業務ロジックの厚いアプリ。
+#       「業務の規則」を枠組みから切り離しておきたいもの。
+
+version: 1
+
+# 見る範囲。include が空なら、リポジトリ全体の対応拡張子を見る。
+scope:
+  include: ["src/**", "app/**"]
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*_test.*"
+    - "**/generated/**"
+    - "**/*.g.*"
+    - "**/migrations/**"
+
+# 層と、依存してよい向き。
+#   path   … その層に属するファイル(glob)
+#   allow  … その層が import してよい層。ここに無い層へ向かうと逸脱として出る
+#   role   … 一言。差し戻すときに表示される
+# 上に書いた層ほど内側(何にも依存しない)にしておくと読みやすい。
+layers:
+  - name: domain
+    path: ["src/domain/**"]
+    role: 業務の規則。枠組みも DB も知らない
+    allow: []
+
+  - name: application
+    path: ["src/application/**", "src/usecase/**"]
+    role: 手順。domain を組み合わせて 1 つの仕事にする
+    allow: [domain]
+
+  - name: infrastructure
+    path: ["src/infra/**", "src/adapters/**"]
+    role: 外の世界。DB・HTTP・ファイル・SDK
+    allow: [domain, application]
+
+  - name: interface
+    path: ["src/api/**", "src/cli/**", "src/web/**"]
+    role: 入口。受け取って application に渡すだけ
+    allow: [domain, application]
+
+  - name: shared
+    path: ["src/shared/**", "src/lib/**"]
+    role: どの層からも使う道具。業務の言葉を持ち込まない
+    allow: []
+
+# 長さの上限。超えたら停止時に指摘し、split が分けかたを提案する。
+# いまの実物を測って、その 1.2 倍くらいから始める。最初から理想値にしない。
+limits:
+  file_lines:
+    default: 300
+    "src/api/**": 200        # 入口は薄いはず。厚いなら application へ移すとき
+  function_lines: 50
+  nesting: 4                 # 字下げの段数。関数の本体を 1 段と数える
+  params: 5
+  dir_files: 15              # 1 ディレクトリのファイル数。超えたら分けかたが無い印
+
+# コメント。多すぎても少なすぎても指摘する。
+comments:
+  min_ratio: 0.03            # コメント行 / コード行。下回ると「なぜ」が残っていない
+  max_ratio: 0.35            # 上回るとコードの言い換えが混じっている
+  max_block: 15              # 連続コメントの上限。長い説明は docs へ
+  require_for_lines: 40      # これより長い関数には説明を 1 つ求める
+
+# 重なっているコードの見つけ方。
+duplication:
+  min_lines: 8               # 行がそのまま重なっているとき、何行そろったら言うか
+  ignore: ["**/*.test.*", "**/fixtures/**"]
+
+  # 行はそろわないが形が同じもの (共通化できるものの多くはこちら)。
+  # 骨組みの重なり具合。0.85 で「小さいほうの 85% が相手にもある」。
+  # 下げると似ていないものまで出る。0 にすると見ない。
+  similar: 0.85
+  similar_min_lines: 8       # これより短い関数は見ない
+  similar_max_group: 12      # これより大きいかたまりは枠組みの書き方とみなして捨てる
+
+# 使われていないものの見つけ方。
+dead:
+  entrypoints: ["src/main.*", "src/index.*", "src/cli/**"]   # ここは参照が無くてよい
+  ignore: ["**/*.test.*"]
+  symbols: true              # 定義だけで呼ばれていない名前も出す(候補どまり)
+
+# Claude が下した判断の扱い (.code-keeper/judgments.yml)。
+judgments:
+  regrow: 0.3       # 判断したときから 3 割伸びたら、台帳を無視してもう一度言う
+
+# 停止時の指摘。
+notify:
+  enabled: true
+
+# 新規ファイルの置き場所チェック。層のどこにも入らない場所は差し戻す。
+guard:
+  enabled: true
+  extensions: []             # 空なら scope の対応拡張子ぜんぶ
+  allow: []                  # 層の外に置いてよい場所があれば
