@@ -1,0 +1,59 @@
+# .code-policy.yml — この置き場のコード規約
+#
+# プラグインは 1 つずつ配られるので、プラグインをまたいだ共有はできない。
+# 「入口 (フックから呼ばれるもの) は部品を使う。部品は入口を知らない」だけを見張る。
+
+version: 1
+
+scope:
+  include: ["*/scripts/**"]
+
+layers:
+  - name: entry
+    path: ["*/scripts/ck.py", "*/scripts/dk.py"]
+    role: フックとスラッシュコマンドの入口。ここだけが標準入力とフックの約束を知る
+    allow: [core]
+    isolate: 1        # 先頭 1 セグメント = プラグイン名。またいだ import は禁止
+
+  - name: core
+    path:
+      - "*/scripts/policy.py"
+      - "*/scripts/lang.py"
+      - "*/scripts/scan.py"
+      - "*/scripts/clones.py"
+      - "*/scripts/report.py"
+      - "*/scripts/ledger.py"
+    role: 部品。規約の読み込み・言語の見かた・走査。入口を知らない
+    allow: []
+    isolate: 1
+
+limits:
+  file_lines: 600     # 走査の本体は長くなる。ここを超えたら役割が 2 つ入っている
+  function_lines: 80
+  nesting: 5
+  params:
+    default: 5
+    "*/scripts/lang.py": 8   # 言語表を組み立てるところだけ。値を並べるための引数
+  dir_files: 10
+
+comments:
+  min_ratio: 0.05     # measure の実測から。なぜその見かたなのかを残す
+  max_ratio: 0.40
+  max_block: 15
+  require_for_lines: 40
+
+duplication:
+  min_lines: 10
+  # docs-keeper と code-keeper が同じ YAML パーサを持つのは意図した写し。
+  # プラグインは単体で動く必要があり、共通化できない。片方だけを見る。
+  ignore: ["docs-keeper/**"]
+
+dead:
+  entrypoints: ["*/scripts/ck.py", "*/scripts/dk.py"]
+  symbols: true
+
+notify:
+  enabled: true
+
+guard:
+  enabled: true
