@@ -1,0 +1,214 @@
+# .claude/policy.yml — このリポジトリの規約 (使う人がいて、収益を求めるもの向け)
+#
+# 道具向けとの違いは 2 つ:
+#   ・使う人の立場 (user-voice) を、作る人の立場と別に置く
+#   ・売り方を見る役 (marketer) を置く。機能を足す前に、届いているかを見る
+
+version: 1
+
+project:
+  name: {{リポジトリ名}}
+  kind: product
+  what: {{一行で、誰の何を解くものか}}
+  users: {{具体的に。「学生」ではなく「発表前夜にスライドを直している学生」}}
+  revenue: subscription       # ads / subscription / paid / sponsor / contract
+  stage: prototype
+  # 収益を求めるなら、いま何で詰まっているかを書く。marketer はここから始める
+  bottleneck: {{知られていない / 使われない / 続かない / 払われない のどれか}}
+
+roles:
+  - name: docs-auditor
+    why: 画面と docs が別々に動いて、書いてある機能が無い状態になる
+    stance: このリポジトリを初めて読む人
+    reads: ["README.md", "docs/**", "CLAUDE.md"]
+
+  - name: code-steward
+    why: 画面を足すたびに似た部品が増える。使わなくなった画面が残る
+    stance: 半年後にこれを引き継ぐ人
+    reads: ["{{ソースの根}}/**"]
+
+  - name: critic
+    why: 作った本人には、その機能が要るかどうかが判断できない
+    stance: {{この分野に詳しい人。「同種のアプリを 3 つ使ったことがある人」など}}
+    reads: ["docs/**", "{{画面のあるところ}}/**"]
+
+  - name: user-voice
+    why: 使う人の都合と、作る人の都合が違う。作る側だけで決めると導線が壊れる
+    stance: {{project.users をそのまま。状況まで書く}}
+    reads: ["{{画面のあるところ}}/**", "README.md"]
+
+  - name: reviewer
+    why: 差分を読まないままコミットが積み上がる
+    stance: 通しで差分を読む人
+    reads: []
+
+  - name: marketer
+    why: 機能を足すより先に、届いていない理由を見る人が要る
+    stance: 金を出す側 / 使わずに閉じた側
+    reads: ["README.md", "docs/**"]
+
+generate:
+  claude_md: CLAUDE.md
+  keep: []
+
+
+routines: []
+
+
+notify:
+  enabled: true
+  drift: true
+
+judgments:
+  regrow: 0.3
+
+# ------------------------------------------------------------------ docs
+# 文書の置き場所・索引・行数・実装との対応。
+docs:
+
+  # 索引。すべての md はここから辿れること。
+  index: docs/README.md
+
+  # 置き場所と役割。ここに無い場所へ新しい md を作ろうとすると差し戻される。
+  # 実在する場所だけ書く。
+  layout:
+    - path: README.md
+      role: 作品としての紹介。外から来た人が最初に見る
+    - path: CLAUDE.md
+      role: 開発の決まりごとと既知の罠。作業前に読む
+    - path: docs/README.md
+      role: 索引。どれを読むか
+    - path: docs/spec.md
+      role: いまの仕様。やらないと決めたことも書く
+    - path: docs/architecture.md
+      role: どう作ってあるか。設計判断とその理由
+    - path: docs/TODO.md
+      role: 残作業だけ。済んだものは archive へ
+    - path: docs/changelog.md
+      role: 利用者から見た変更点
+    - path: docs/release/
+      role: 出すときの手順・掲載文・審査情報
+    - path: docs/archive/
+      role: 記録。いまの仕様として読まない
+
+  # 行数の上限。超えたら停止時に指摘し、compact が archive 送りを提案する。
+  # 現状の 1.2 倍くらいから始める。archive は記録なので大きく取る。
+  limits:
+    docs/TODO.md: 120
+    docs/spec.md: 200
+    docs/architecture.md: 250
+    docs/README.md: 150
+    CLAUDE.md: 300
+    README.md: 150
+    docs/archive/**: 2000
+    default: 400
+
+  # 「ここを触ったら、ここを直す」の対応表。
+  # セッション中に source を変えたのに docs が動いていなければ、停止時に指摘する。
+  # 疑わしいものを足さない。2〜3 本から始める。
+  watch:
+    - source: []
+      docs: []
+      why: ""
+
+  # 記録の扱い。
+  archive:
+    dir: docs/archive/
+    index: docs/archive/README.md   # 記録の索引。無いと 1000 行を grep することになる
+    # 割り方。記録は「短く保つ」のではなく「引けるようにする」のが目的。
+    #   by: year    … archive/2026-H1.md のように期間で割る(既定向き)
+    #   by: version … archive/v1.0.md のように版で割る(リリースのあるもの向き)
+    #   by: none    … 割らない
+    rotate:
+      by: year
+      max_lines: 1500   # 1 ファイルがこれを超えたら「割りどき」と言う
+    rules:
+      - 実装履歴・試したこと・没案は archive/ にだけ書く。仕様書と設計書には書かない
+      - TODO.md の済んだ項目は archive/work-log.md へ移す
+      - archive の各項目には日付を付ける。日付のない記録は後から捨てられない
+      - 割ったら archive の索引に 1 行足す。索引に無い記録は無いのと同じ
+
+  # 新規 md の置き場所チェック。
+  guard:
+    enabled: true
+    scope: ["docs/**", "*.md"]   # 見張る範囲。アプリのソース内 README は外す
+    extensions: [".md"]          # 見張る拡張子。notebook も見るなら ".ipynb" を足す
+    allow: []                    # layout 以外に許す場所があれば
+
+# ------------------------------------------------------------------ code
+# 層と依存の向き・長さの上限・重複と使われていないコードの見つけかた。
+code:
+
+  scope:
+    include: ["src/**", "lib/**", "app/**"]
+    exclude:
+      - "**/*.test.*"
+      - "**/*.stories.*"
+      - "**/*.g.dart"
+      - "**/*.freezed.dart"
+      - "**/generated/**"
+      - "**/*.d.ts"
+
+  layers:
+    - name: features
+      path: ["src/features/**", "lib/features/**"]
+      role: 機能ひとまとまり。画面・状態・その機能だけの API
+      allow: [entities, shared]
+      isolate: 3               # 先頭 3 セグメント (src/features/cart) が違えば依存禁止
+    - name: entities
+      path: ["src/entities/**", "lib/models/**", "src/domain/**"]
+      role: 業務の型と規則。画面を知らない
+      allow: [shared]
+    - name: shared
+      path: ["src/shared/**", "src/components/**", "src/lib/**", "lib/shared/**"]
+      role: どの機能からも使う部品。機能の名前を持ち込まない
+      allow: []
+    - name: pages
+      path: ["src/pages/**", "src/app/**", "src/routes/**"]
+      role: 入口。features を並べるだけ
+      allow: [features, entities, shared]
+
+
+
+
+  limits:
+    file_lines:
+      default: 250
+      "**/components/**": 200  # 画面部品が 200 行を超えたら、たいてい 2 つ入っている
+    function_lines: 50
+    nesting: 4
+    params: 5
+    dir_files: 20
+
+  comments:
+    min_ratio: 0.02            # 画面のコードは自明なものが多い。下限はゆるく
+    max_ratio: 0.3
+    max_block: 12
+    require_for_lines: 40
+
+  duplication:
+    min_lines: 8
+    ignore: ["**/*.test.*", "**/*.stories.*"]
+    # 画面の部品はここが効く。ボタンやカードの「同じ骨組みで文言だけ違う」は
+    # 行の一致では見つからない。ただし枠組みが書けと言っている形 (build /
+    # コンポーネント本体) が大量に一致するので、max_group で切る。
+    similar: 0.85
+    similar_min_lines: 8
+    similar_max_group: 8
+
+
+  dead:
+    # 枠組みがファイル名で拾うものは、参照が無くて当たり前。ここに書く。
+    entrypoints:
+      - "src/pages/**"
+      - "src/app/**"
+      - "src/routes/**"
+      - "**/main.*"
+      - "**/index.*"
+    ignore: ["**/*.test.*", "**/*.stories.*"]
+    symbols: true
+
+  guard:
+    enabled: true
+    extensions: []
+    allow: []

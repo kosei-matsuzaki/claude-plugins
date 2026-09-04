@@ -1,0 +1,77 @@
+# .claude/policy.yml — この置き場の規約
+#
+# keeper が読む。手で直してよい。
+# 2026-09-04 に .code-policy.yml から移した (値は 1 つも変えていない)。
+
+version: 1
+
+project:
+  name: claude-plugins
+  kind: tool
+  what: 個人開発リポジトリで使う Claude Code プラグイン置き場
+  users: 自分
+  revenue: none
+  stage: maintained
+
+roles: []
+
+generate:
+  claude_md: CLAUDE.md
+  keep: []
+
+notify:
+  enabled: true
+  drift: true
+
+judgments:
+  regrow: 0.3
+
+# ------------------------------------------------------------------ code
+code:
+  # 「入口 (フックから呼ばれるもの) は部品を使う。部品は入口を知らない」だけを見張る。
+  # プラグインが 1 つになったので、またいだ import を止める isolate は要らなくなった。
+
+  scope:
+    include: ["*/scripts/**"]
+
+  layers:
+    - name: entry
+      path: ["*/scripts/k.py"]
+      role: フックとスラッシュコマンドの入口。ここだけが標準入力とフックの約束を知る
+      allow: [core]
+
+    - name: core
+      path:
+        - "*/scripts/policy.py"
+        - "*/scripts/ledger.py"
+        - "*/scripts/lang.py"
+        - "*/scripts/scan.py"
+        - "*/scripts/clones.py"
+        - "*/scripts/report.py"
+        - "*/scripts/docs.py"
+        - "*/scripts/crew.py"
+      role: 部品。規約の読み込み・言語の見かた・走査。入口を知らない
+      allow: []
+
+  limits:
+    file_lines: 600     # 走査の本体は長くなる。ここを超えたら役割が 2 つ入っている
+    function_lines: 80
+    nesting: 5
+    params:
+      default: 5
+      "*/scripts/lang.py": 8   # 言語表を組み立てるところだけ。値を並べるための引数
+    dir_files: 12
+
+  comments:
+    min_ratio: 0.05     # measure の実測から。なぜその見かたなのかを残す
+    max_ratio: 0.40
+    max_block: 15
+    require_for_lines: 40
+
+  duplication:
+    min_lines: 10
+    similar: 0.85
+
+  dead:
+    entrypoints: ["*/scripts/k.py"]
+    symbols: true

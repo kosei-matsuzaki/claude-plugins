@@ -1,0 +1,20 @@
+{
+  "description": "keeper: セッションの頭にずれと手直しを一度だけ知らせ、規約にない置き場所への新規ファイルを差し戻す。",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/k.py\" brief", "timeout": 20 }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/k.py\" guard", "timeout": 10 }
+        ]
+      }
+    ]
+  }
+}

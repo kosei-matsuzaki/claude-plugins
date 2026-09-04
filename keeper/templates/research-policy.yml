@@ -1,0 +1,206 @@
+# .claude/policy.yml — このリポジトリの規約 (回して結果を見るもの (実験・分析) 向け)
+#
+# 道具向けとの違い:
+#   ・「動くか」ではなく「その結果を信じてよいか」を見る役を置く
+#   ・実験の写しを共通化させない (条件違いは似ているだけで別物)
+#   ・利用者がいないので user-voice と marketer は置かない
+
+version: 1
+
+project:
+  name: {{リポジトリ名}}
+  kind: research
+  what: {{何を確かめようとしているか。手法ではなく問い}}
+  users: 自分 (と、あとで結果を引き継ぐ人)
+  revenue: none
+  stage: running
+
+roles:
+  - name: docs-auditor
+    why: 実験結果と、書いてある結論がずれる。ずれたまま次の実験を積む
+    stance: 結果だけ渡された第三者
+    reads: ["docs/results.md", "docs/reproduce.md", "docs/**", "README.md"]
+
+  - name: code-steward
+    why: 使い捨てのスクリプトと出力が溜まる。どれが本番か分からなくなる
+    stance: 半年後に再現しようとする人
+    reads: ["{{ソースの根}}/**", "experiments/**"]
+
+  # 研究では critic が「機能の筋」ではなく「主張の筋」を見る。ここが肝
+  - name: critic
+    why: 出た結果を疑う人がいない。都合のいい解釈が通ってしまう
+    stance: {{この分野の査読者。「同じ手法を使ったことがあり、失敗も見ている人」}}
+    reads: ["docs/results.md", "experiments/**", "{{ソースの根}}/**"]
+
+  - name: reviewer
+    why: 実験のコードは直しっぱなしになりやすく、いつ何を変えたか残らない
+    stance: 通しで差分を読む人
+    reads: []
+
+generate:
+  claude_md: CLAUDE.md
+  keep: []
+
+
+routines: []
+
+
+notify:
+  enabled: true
+  drift: true
+
+judgments:
+  regrow: 0.3
+
+# ------------------------------------------------------------------ docs
+# 文書の置き場所・索引・行数・実装との対応。
+docs:
+
+  index: docs/README.md
+
+  layout:
+    - path: README.md
+      role: 何を解こうとしているか。いまの結果のさわり
+    - path: CLAUDE.md
+      role: 環境・決めごと・既知の罠。作業前に読む
+    - path: docs/README.md
+      role: 索引。どれを読むか
+    - path: docs/method.md
+      role: 何をどう解くか。定式化・前提・置いた近似とその理由
+    - path: docs/results.md
+      role: いまの結果。全試行を 1 行ずつの表で持つ。**生きている比較対象**
+    - path: docs/reproduce.md
+      role: 再現手順。データの版・乱数の種・環境・コマンド
+    - path: docs/TODO.md
+      role: 残作業だけ。**GitHub Issues で管理しているなら、この行ごと消す**
+    - path: docs/design-review.md
+      role: 提案・レビュー。日付つき。**仕様ではない**。実装と食い違ったら仕様が正
+    - path: docs/experiments/
+      role: 1 試行 1 ファイル。条件・出力・気づき。results.md の各行の裏づけ
+    - path: docs/archive/
+      role: 記録。打ち切った系統・没案。**いまの前提として読まない**
+
+  # 行数の上限。
+  # **「正本データ」には上限をかけない。** カリキュラム・特徴量カタログ・辞書のように
+  # 中身が増えるのが正しいものは、長さで叱っても意味がない。limits から外すか広く取る。
+  limits:
+    CLAUDE.md: 300
+    README.md: 150
+    docs/README.md: 150
+    docs/method.md: 400
+    docs/results.md: 300          # 伸びたら「表に畳めていない」しるし
+    docs/reproduce.md: 200
+    docs/TODO.md: 120
+    docs/experiments/**: 200      # 1 試行が 200 行を超えたら、それは論文であって記録ではない
+    default: 400
+
+  # 「ここを触ったら、ここを直す」の対応表。
+  # 研究リポジトリで効くのは「回したのに結果を書いていない」を捕まえること。
+  watch:
+    - source: ["src/**", "*.py"]
+      docs: ["docs/method.md"]
+      why: 解き方そのものが動いた
+    - source: ["configs/**", "params/**", "*.yaml", "*.toml"]
+      docs: ["docs/reproduce.md"]
+      why: 条件が変わった。再現手順が古くなっていないか確かめる
+    - source: ["experiments/**", "notebooks/**", "results/**"]
+      docs: ["docs/results.md"]
+      why: 回したのに、結果の表に行が増えていない
+    # 正本(md)と実装(コード)が対になっているとき、その同期を見張る。
+    # 例: docs/curriculum.md が正本で src/curriculum.js が実データ、のような関係。
+    # 片方だけ直すと静かにずれるので、watch の使いどころとして強い。
+    # 対がなければこの規則ごと消す。
+    - source: []
+      docs: []
+      why: 正本と実装がずれていないか
+
+
+
+
+  archive:
+    dir: docs/archive/
+    index: docs/archive/README.md
+    rotate:
+      by: year
+      max_lines: 1500
+    rules:
+      - 実装履歴・環境構築の試行錯誤・没案は archive/ にだけ書く
+      - "**実験結果は archive へ送らない。** results.md の表に残す。行が増えるのは正しい"
+      - archive へ送るのは「その系統を追うのをやめた」と決めたときだけ。やめた理由を必ず書く
+      - 日付つきの経緯(「08-24 に見つけて 08-27 に撤回した」)は archive。結論だけ仕様に 1 行残す
+      - archive の各項目には日付を付ける。割ったら archive の索引に 1 行足す
+
+  guard:
+    enabled: true
+    scope: ["docs/**", "*.md"]
+    extensions: [".md"]   # notebook も置き場所を見張るなら ".ipynb" を足す
+    allow: []
+
+# ------------------------------------------------------------------ code
+# 層と依存の向き・長さの上限・重複と使われていないコードの見つけかた。
+code:
+
+  scope:
+    include: ["src/**", "experiments/**", "scripts/**", "notebooks/**"]
+    exclude:
+      - "**/*_test.py"
+      - "**/test_*.py"
+      - "**/.ipynb_checkpoints/**"
+      - "**/data/**"
+      - "**/outputs/**"
+
+  layers:
+    - name: core
+      path: ["src/**"]
+      role: 再利用する道具。モデル・前処理・評価。実験の条件を持たない
+      allow: []
+    - name: experiments
+      path: ["experiments/**"]
+      role: 条件を決めて回す本体。1 実験 1 ファイル。写しがあってよい
+      allow: [core]
+    - name: scripts
+      path: ["scripts/**", "bin/**"]
+      role: 手で叩くもの。集計・図・データ取得
+      allow: [core, experiments]
+    - name: notebooks
+      path: ["notebooks/**"]
+      role: 手元で見るためのもの。ここを誰かが import したら設計が壊れている
+      allow: [core, experiments]
+
+
+
+
+  limits:
+    file_lines:
+      default: 400
+      "src/**": 300            # 道具は短く。実験は長くてよい
+    function_lines: 60
+    nesting: 4
+    params: 8                  # ハイパーパラメータを引数で渡す。ここは広く取る
+    dir_files: 30
+
+  comments:
+    min_ratio: 0.05            # 式の根拠・単位・出典。ここを書かないと半年後に読めない
+    max_ratio: 0.45
+    max_block: 25
+    require_for_lines: 30
+
+  duplication:
+    min_lines: 10
+    # 実験ごとの写しは残す。共通化するのは src/ の中だけ。
+    ignore: ["experiments/**", "notebooks/**"]
+    # 形の似ているものも src/ の中だけで見る。実験は似ていて当たり前。
+    similar: 0.9
+    similar_min_lines: 12
+    similar_max_group: 8
+
+
+  dead:
+    entrypoints: ["experiments/**", "scripts/**", "notebooks/**", "src/**/__init__.py"]
+    ignore: ["**/test_*.py"]
+    symbols: false             # 実験の途中で寝かせている関数が多い。名前では判断しない
+
+  guard:
+    enabled: true
+    extensions: [".py"]        # notebook は場所を選ばず作られる。見張らない
+    allow: []

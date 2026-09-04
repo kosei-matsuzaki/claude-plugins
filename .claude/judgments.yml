@@ -1,0 +1,20 @@
+# 判断台帳。「いまは直さない」と決めたものを覚えておく。
+#
+# 消せばまた指摘される。判断が変わったら消すか、why を書き直す。
+# until を書くと、その日を過ぎたときにもう一度言う。運営の判断はたいてい期限付き。
+
+judgments:
+  - key: "similar:code_sections:2"
+    path: keeper/scripts/k.py
+    decision: "まとめない"
+    why: "docs と code で呼ぶ検査の関数が違い、引数の形もそろわない。共通化には関数表を渡す遠回りが要る。形が同じだけで別物"
+    at: 2
+    date: 2026-09-04
+    by: "統合のとき"
+  - key: "similar:layers:2"
+    path: keeper/scripts/policy.py
+    decision: "まとめない"
+    why: "どちらも「マップの一覧を均す」形だが、埋める欄も欠けたときの扱いも違う。抽象化すると両方読みにくくなる"
+    at: 2
+    date: 2026-09-04
+    by: "統合のとき"
