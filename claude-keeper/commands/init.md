@@ -7,7 +7,7 @@ argument-hint: "[--force]"
 **このリポジトリに Claude を導入する入口。**現状を測って `.claude/policy.yml` を作り、
 このプロジェクトに要る役・規約・コマンドを生成するところまでを 1 本で行う。
 
-**生成したあと、プロジェクトは keeper が入っていなくても回る。**役が読む規約も
+**生成したあと、プロジェクトは claude-keeper が入っていなくても回る。**役が読む規約も
 日々のコマンドもプロジェクトに置く。プラグイン側にしか無ければ、リポジトリを
 他所へ持っていった時点で役が壊れる。
 
@@ -34,7 +34,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/k.py" measure
 ### 既にあるときは、先に止まる
 
 `.claude/policy.yml` が既にあり `$ARGUMENTS` に `--force` が無ければ、**そこで止めて**
-診断だけ報告し、組み直すか聞く。`/keeper:refresh`(差分だけ直す)のほうが安いことも伝える。
+診断だけ報告し、組み直すか聞く。`/claude-keeper:refresh`(差分だけ直す)のほうが安いことも伝える。
 
 `check` が「統合前の規約を読んでいる」と言ったら、**移行だけを先に提案する。**
 `docs/.docs-policy.yml` と `.code-policy.yml` の中身を `.claude/policy.yml` の
@@ -47,7 +47,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/k.py" measure
 
 | 見つけたもの | どうするか |
 |---|---|
-| 手で書かれた CLAUDE.md の節 | 中身を丸ごと残す。`<!-- keeper:generated -->` の外に置く |
+| 手で書かれた CLAUDE.md の節 | 中身を丸ごと残す。`<!-- claude-keeper:generated -->` の外に置く |
 | `.claude/commands/` にある独自コマンド | 残す。`generate.keep` に書く |
 | `.claude/settings.json` の権限・環境変数 | **触らない** |
 | 既にある agent で、役として筋が通るもの | 役として取り込む(作り直さない) |
@@ -134,7 +134,7 @@ git で追跡されていないファイルは戻せないので、特に慎重�
 **書く前に、全部見せる。**規約の全文と根拠(特に `watch` と `layers` は 1 本ずつ)、
 置くものの一覧と理由、CLAUDE.md の見出し構成と**残す既存の節**、消すものの一覧。
 
-承認されたら書く。CLAUDE.md は `<!-- keeper:generated -->` で囲み、
+承認されたら書く。CLAUDE.md は `<!-- claude-keeper:generated -->` で囲み、
 **手で書かれた節は印の外に置く**(skill は写した `claude-md` に従う)。
 
 ## 8. 控える
@@ -157,6 +157,6 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/k.py" check
 
 - 作った規約と、上限をどう決めたか(実測の何%か)
 - 置いた役と、それぞれを**いつ呼ぶか**(1 役 1 行)
-- **プロジェクト側に置いたコマンド。**keeper が無くても動くことを伝える
+- **プロジェクト側に置いたコマンド。**claude-keeper が無くても動くことを伝える
 - **置かなかった役と、その理由**
 - いま出ている指摘の件数と、どのコマンドで解けるか

@@ -59,7 +59,7 @@ git diff HEAD -- <パス>
 
 **書き換える前に一覧を見せて承認を取る。**`init` と違って全部は作り直さない。
 
-- CLAUDE.md は `<!-- keeper:generated -->` の**内側だけ**書き換える
+- CLAUDE.md は `<!-- claude-keeper:generated -->` の**内側だけ**書き換える
 - `generate.keep` に挙がっているものは触らない
 - 役やコマンドを消すときは、対応するファイルも消す(残ると `check` が言い続ける)
 - `.claude/policy.yml` も実態に合わせて直す

@@ -83,8 +83,8 @@ judgments:
     date: 2026-09-03
 ```
 
-keeper が入っているなら
-`python3 <keeper>/scripts/k.py judge --key ... --why ...` でも書ける
+claude-keeper が入っているなら
+`python3 <claude-keeper>/scripts/k.py judge --key ... --why ...` でも書ける
 (同じ鍵があれば差し替えてくれる)。
 
 ## やらないこと

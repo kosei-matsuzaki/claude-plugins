@@ -24,7 +24,7 @@ COMMAND_DIR = ".claude/commands"
 SKILL_DIR = ".claude/skills"
 SETTINGS = (".claude/settings.json", ".claude/settings.local.json")
 
-# keeper が要るときに作るもの。まだ無いのは正常なので参照切れと言わない
+# claude-keeper が要るときに作るもの。まだ無いのは正常なので参照切れと言わない
 _ON_DEMAND = (".claude/judgments.yml", ".claude/manifest.json")
 
 # そのまま写す規約。プラグイン側と中身が違えば、古いか手が入っている
@@ -194,7 +194,7 @@ def unknown_commands(root, files, known_plugins):
     入っているプラグインの一覧は取れないので、体制ファイルが前提として
     挙げているものだけを既知とする。当てが無い = 入れ忘れか、書き間違い。
     """
-    known = set(known_plugins or []) | {"keeper"}
+    known = set(known_plugins or []) | {"claude-keeper"}
     out = []
     for rel_path in files:
         for plugin, cmd in _SLASH_CMD.findall(_read(os.path.join(root, rel_path))):
@@ -226,7 +226,7 @@ def doc_files(root, inv):
 
 # ------------------------------------------------------------------ 役とのずれ
 
-# 生成したプロジェクトが keeper 無しで回るために要るもの。
+# 生成したプロジェクトが claude-keeper 無しで回るために要るもの。
 # ここが欠けると、役が読む規約や日々の入口がプラグイン側にしか無い状態になる。
 REQUIRED_SKILLS = ("flat-view", "claude-md", "docs-style", "code-comments")
 REQUIRED_COMMANDS = ("standup", "critique", "ship", "docs", "code", "routine")

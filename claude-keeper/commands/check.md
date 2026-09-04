@@ -29,10 +29,10 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/k.py" check $ARGUMENTS
 |---|---|
 | 長すぎる / 重なっている / 使われていない | `/code`(**読んでから**決める) |
 | 長すぎる文書 / 索引漏れ / 規約外の置き場所 / 文書が動いていない | `/docs` |
-| 参照切れ・雛形の埋め残し | `/keeper:refresh` |
-| 自立していないところ | `/keeper:refresh` |
+| 参照切れ・雛形の埋め残し | `/claude-keeper:refresh` |
+| 自立していないところ | `/claude-keeper:refresh` |
 | 生成物への手直し | 中身を読む。**手で直した内容のほうが正しいことが多い** |
-| 統合前の規約 / 台帳が残っている | `/keeper:init` が 1 つにまとめる |
+| 統合前の規約 / 台帳が残っている | `/claude-keeper:init` が 1 つにまとめる |
 
 ## 外れていたら黙らせる
 
@@ -42,7 +42,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/k.py" check $ARGUMENTS
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/k.py" judge \
   --key "ref:scratch/" --path CLAUDE.md \
   --decision "直さない" --why "実行時に作られる一時領域。リポジトリに無いのが正しい" \
-  --until 2026-12-01 --by "/keeper:check"
+  --until 2026-12-01 --by "/claude-keeper:check"
 ```
 
 `--until` を書くと、その日を過ぎたときにもう一度言う。**運営の判断はたいてい

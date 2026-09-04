@@ -1,5 +1,5 @@
 {
-  "description": "keeper: セッションの頭にずれと手直しを一度だけ知らせ、規約にない置き場所への新規ファイルを差し戻す。",
+  "description": "claude-keeper: セッションの頭にずれと手直しを一度だけ知らせ、規約にない置き場所への新規ファイルを差し戻す。",
   "hooks": {
     "SessionStart": [
       {

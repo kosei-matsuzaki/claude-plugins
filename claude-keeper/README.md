@@ -1,22 +1,22 @@
-# keeper
+# claude-keeper
 
 **リポジトリに Claude を導入する入口。**現状を測って規約を作り、このプロジェクトに
 要る役・規約・コマンドを `.claude/` に生成する。
 
-**生成したあと、プロジェクトは keeper が入っていなくても回る。**役が読む規約も
+**生成したあと、プロジェクトは claude-keeper が入っていなくても回る。**役が読む規約も
 日々のコマンドもプロジェクトに置くので、リポジトリを他所へ持っていっても壊れない。
 
 解こうとしている困りごと:
 
 | 困りごと | 効くもの |
 |---|---|
-| 新しいリポジトリで、毎回ゼロから Claude 用の下ごしらえをする | `/keeper:init` 1 本 |
+| 新しいリポジトリで、毎回ゼロから Claude 用の下ごしらえをする | `/claude-keeper:init` 1 本 |
 | docs が実装から離れる・散る・伸びる | 生成される `/docs` + 役 `docs-auditor` |
 | コードが伸びる・散る・崩れる・残る | 生成される `/code` + 役 `code-steward` |
 | 作った本人しかいないので、機能の筋を疑う人がいない | 役 `critic` `user-voice` |
 | 差分を読まないままコミットが積み上がる | 生成される `/ship` + 役 `reviewer` |
 | 収益を求めているのに、機能ばかり足している | 役 `marketer` + `/market` |
-| 組んだ `.claude/` が腐る(消えたパスを指し続ける) | 参照切れの検出 / `/keeper:refresh` |
+| 組んだ `.claude/` が腐る(消えたパスを指し続ける) | 参照切れの検出 / `/claude-keeper:refresh` |
 | 作り直すと、手で書いた部分が消える | 生成物の指紋を控えて、手が入ったものは残す |
 
 ## 芯にある 2 つの考え
@@ -45,26 +45,26 @@
 [flat-view](templates/skills/flat-view/SKILL.md) に書いてある。
 
 ```
-組む     → /keeper:init      現状を測って規約を作り、.claude/ を生成する
+組む     → /claude-keeper:init      現状を測って規約を作り、.claude/ を生成する
           ↓
-回す     → /standup          ← プロジェクト側のコマンド。keeper は要らない
+回す     → /standup          ← プロジェクト側のコマンド。claude-keeper は要らない
           ↓
 決める   → [台帳] 「いまは直さない」を期限つきで覚える。期限が来たら言い直す
           ↓
-組み直す → /keeper:refresh    ずれたぶんだけ。手が入ったものは消さない
+組み直す → /claude-keeper:refresh    ずれたぶんだけ。手が入ったものは消さない
 ```
 
 ## 使いかた
 
 ```
 /plugin marketplace add kosei-matsuzaki/claude-plugins
-/plugin install keeper@kosei-plugins
+/plugin install claude-keeper@kosei-plugins
 ```
 
 リポジトリごとに一度だけ:
 
 ```
-/keeper:init
+/claude-keeper:init
 ```
 
 現状を測って `.claude/policy.yml` を作り、役・規約・コマンドを生成する。
@@ -85,7 +85,7 @@
 
 ## コマンド
 
-keeper が持つのは **3 本だけ**。組む・診る・組み直す。
+claude-keeper が持つのは **3 本だけ**。組む・診る・組み直す。
 
 | コマンド | 何をするか | 書き換える |
 |---|---|---|
@@ -94,7 +94,7 @@ keeper が持つのは **3 本だけ**。組む・診る・組み直す。
 | `refresh` | 生成したときからずれたぶんだけ組み直す | ずれたところだけ |
 
 残りは `init` が**プロジェクトの `.claude/commands/` に生成する**。
-プロジェクト専用に書き換わっていて、keeper が入っていなくても動く。
+プロジェクト専用に書き換わっていて、claude-keeper が入っていなくても動く。
 
 | 生成されるコマンド | 何をするか | いつ |
 |---|---|---|
@@ -110,7 +110,7 @@ keeper が持つのは **3 本だけ**。組む・診る・組み直す。
 `docs-style`(文体)/ `code-comments`(コメント)。
 **写すものは 1 文字も変えない。**書き換えるのは役とコマンドだけ。
 
-keeper 自身が持つ skill は [policy](skills/policy/SKILL.md) **1 本だけ** —
+claude-keeper 自身が持つ skill は [policy](skills/policy/SKILL.md) **1 本だけ** —
 `init` と `refresh` が読む、規約の書き方と雛形の選び方。生成されるものは
 skill ではなく [templates/](templates/) に置いてある。
 
@@ -138,7 +138,7 @@ skill ではなく [templates/](templates/) に置いてある。
 `.claude/` を作り直すのは、腐ったものを直すいちばん確実な方法。
 ただし**手で書いたものが消えるなら誰も使わない**ので、3 つで守る。
 
-1. **印** — CLAUDE.md の生成部分は `<!-- keeper:generated -->` で囲む。
+1. **印** — CLAUDE.md の生成部分は `<!-- claude-keeper:generated -->` で囲む。
    **外側は書き換えない**
 2. **指紋** — `stamp` で生成時の中身を控える。中身が変わっていれば
    「手が入っている」と分かる。**手が入ったものは黙って上書きしない**
@@ -157,17 +157,17 @@ skill ではなく [templates/](templates/) に置いてある。
 | 土台のずれ | 言語・最上位ディレクトリ・依存・規模が、組んだときと違う |
 | 生成物への手直し | 次の作り直しで消える |
 
-スラッシュコマンドから使うぶんには `/keeper:check` でよい。素で叩くときは、
+スラッシュコマンドから使うぶんには `/claude-keeper:check` でよい。素で叩くときは、
 **導入先のパスに版番号が入る**ので探してから呼ぶ:
 
 ```bash
-K=$(ls ~/.claude/plugins/cache/*/keeper/*/scripts/k.py | head -1)
+K=$(ls ~/.claude/plugins/cache/*/claude-keeper/*/scripts/k.py | head -1)
 python3 "$K" check
 python3 "$K" check --since origin/main --strict   # CI 用
 python3 "$K" measure                              # 上限を決めるとき
 ```
 
-CI で使うなら、この置き場を clone して `keeper/scripts/k.py` を直に指すほうが確実。
+CI で使うなら、この置き場を clone して `claude-keeper/scripts/k.py` を直に指すほうが確実。
 
 **CI に入れるなら `--since` から始める。**既存のコード全部に当てると、
 最初の 1 回で真っ赤になって誰も見なくなる。
@@ -233,11 +233,11 @@ code:
 
 ### 統合前の規約からの移行
 
-`docs-keeper` と `code-keeper` は keeper に統合した(2026-09-04)。
+`docs-keeper` と `code-keeper` は claude-keeper に統合した(2026-09-04)。
 **規約ファイルはそのまま読める** — `docs/.docs-policy.yml` と `.code-policy.yml` が
 残っていれば `docs:` / `code:` として扱い、判断台帳
 (`.code-keeper/judgments.yml` / `.claude/crew-judgments.yml`)も引き継ぐ。
-`/keeper:init` が `.claude/policy.yml` 1 つへの移行を提案する
+`/claude-keeper:init` が `.claude/policy.yml` 1 つへの移行を提案する
 (**値は 1 つも変えない**)。
 
 ## フック

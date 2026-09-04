@@ -1,6 +1,6 @@
 # .claude/policy.yml — この置き場の規約
 #
-# keeper が読む。手で直してよい。
+# claude-keeper が読む。手で直してよい。
 # 2026-09-04 に .code-policy.yml から移した (値は 1 つも変えていない)。
 
 version: 1

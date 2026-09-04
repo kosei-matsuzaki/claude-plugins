@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""keeper の実行本体。フックからも、スラッシュコマンドからも呼ばれる。
+"""claude-keeper の実行本体。フックからも、スラッシュコマンドからも呼ばれる。
 
   check    docs / コード / .claude/ をまとめて診断する
   measure  いまの実測を出す (規約の上限を決めるときに使う)
@@ -27,7 +27,7 @@ import docs as D      # noqa: E402
 import report as R    # noqa: E402
 import scan as S      # noqa: E402
 
-STATE_DIR = "keeper"
+STATE_DIR = "claude-keeper"
 MAX_ROWS = 12
 
 
@@ -122,7 +122,7 @@ class Sifter(object):
 def docs_sections(root, pol, sifter, since):
     sub = pol.get("docs") or {}
     if not sub:
-        return ["", "## docs: 規約が無い。`/keeper:init` で作れる"]
+        return ["", "## docs: 規約が無い。`/claude-keeper:init` で作れる"]
     found = D.all_docs(root)
     orphans, missing = D.orphan_findings(root, sub, found)
     out = ["", "## 文書 %d 件" % len(found)]
@@ -139,7 +139,7 @@ def docs_sections(root, pol, sifter, since):
 def code_sections(root, pol, sifter, since):
     sub = pol.get("code") or {}
     if not sub:
-        return ["", "## コード: 規約が無い。`/keeper:init` で作れる"]
+        return ["", "## コード: 規約が無い。`/claude-keeper:init` で作れる"]
     files = S.source_files(root, sub)
     data = R.collect(root, sub, files)
     targets = sorted(data)
@@ -173,17 +173,17 @@ def crew_records(root, pol):
     files = C.doc_files(root, inv)
     for src, ref in C.broken_refs(root, files):
         out.append(R.rec(src, "ref:" + ref,
-                         "%s が %s を指しているが、実在しない" % (src, ref), "/keeper:refresh"))
+                         "%s が %s を指しているが、実在しない" % (src, ref), "/claude-keeper:refresh"))
     for src, hole in C.unfilled(root, files):
         out.append(R.rec(src, "hole:%s:%s" % (src, hole),
-                         "%s の雛形が埋まっていない (%s)" % (src, hole), "/keeper:refresh"))
-    for src, cmd in C.unknown_commands(root, files, ["keeper"]):
+                         "%s の雛形が埋まっていない (%s)" % (src, hole), "/claude-keeper:refresh"))
+    for src, cmd in C.unknown_commands(root, files, ["claude-keeper"]):
         out.append(R.rec(src, "cmd:" + cmd,
-                         "%s が %s を勧めているが、当てが無い" % (src, cmd), "/keeper:refresh"))
+                         "%s が %s を勧めているが、当てが無い" % (src, cmd), "/claude-keeper:refresh"))
     diffs, was_at = C.drift(root)
     for d in diffs:
         out.append(R.rec("", "drift:" + d.split(" ")[0],
-                         "土台が変わった: %s (前回 %s)" % (d, was_at or "不明"), "/keeper:refresh"))
+                         "土台が変わった: %s (前回 %s)" % (d, was_at or "不明"), "/claude-keeper:refresh"))
     return out, inv
 
 
@@ -249,9 +249,9 @@ def cmd_check(argv):
         elif a == "--show-judged":
             show_judged = True
     root, path, pol = P.load(start)
-    out = ["# keeper check", "root: %s" % root]
+    out = ["# claude-keeper check", "root: %s" % root]
     if pol is None:
-        out.append("policy: なし → `/keeper:init` で作る")
+        out.append("policy: なし → `/claude-keeper:init` で作る")
         pol = {}
     elif pol.get("_error"):
         out.append("policy: 読めない (%s)" % pol["_error"])
@@ -266,7 +266,7 @@ def cmd_check(argv):
                           proj.get("revenue") or "none"))
     legacy = (pol or {}).get("_legacy") or []
     if legacy:
-        out.append("統合前の規約を読んでいる: %s → `/keeper:init` で 1 つにまとめられる"
+        out.append("統合前の規約を読んでいる: %s → `/claude-keeper:init` で 1 つにまとめられる"
                    % " ".join(legacy))
 
     sifter = Sifter(Ld.load(root), pol)
@@ -300,7 +300,7 @@ def cmd_measure(argv):
     start = argv[argv.index("--root") + 1] if "--root" in argv else os.getcwd()
     root, _, pol = P.load(start)
     pol = pol or {}
-    out = ["# keeper measure", "root: %s" % root, ""]
+    out = ["# claude-keeper measure", "root: %s" % root, ""]
 
     sub = pol.get("code") or {}
     files = S.source_files(root, sub)
@@ -431,7 +431,7 @@ def cmd_brief():
     if pol is None:
         return 0                                   # 規約が無いリポジトリでは黙る
     if pol.get("_error"):
-        emit("keeper: 規約を読めませんでした (%s)。書式を直してください。" % pol["_error"])
+        emit("claude-keeper: 規約を読めませんでした (%s)。書式を直してください。" % pol["_error"])
         return 0
     if not P.opt(pol, "notify.enabled", True) or not P.opt(pol, "notify.drift", True):
         return 0
@@ -444,13 +444,13 @@ def cmd_brief():
     if hand:
         lines.append("・生成物に手が入っている: %s" % " ".join(p for p, _ in hand[:3]))
     if pol.get("_legacy"):
-        lines.append("・統合前の規約を読んでいる (%s)。`/keeper:init` で 1 つにまとめられる"
+        lines.append("・統合前の規約を読んでいる (%s)。`/claude-keeper:init` で 1 つにまとめられる"
                      % " ".join(pol["_legacy"]))
     if not lines:
         return 0
-    text = ("keeper: 組んだ %s から、土台が動いています\n" % (was_at or "とき")
+    text = ("claude-keeper: 組んだ %s から、土台が動いています\n" % (was_at or "とき")
             + "\n".join(lines)
-            + "\n→ 組み直すなら `/keeper:refresh`、いまの姿を見るなら `/keeper:check`。")
+            + "\n→ 組み直すなら `/claude-keeper:refresh`、いまの姿を見るなら `/claude-keeper:check`。")
     emit(text, context=text)
     return 0
 
@@ -476,7 +476,7 @@ def cmd_guard():
         allowed = [d for d, _ in P.layout_paths(pol)] + list(P.opt(pol, "docs.guard.allow", []) or [])
         scope = P.opt(pol, "docs.guard.scope", ["docs/**", "*.md"])
         if allowed and P.matches_any(r, scope) and not P.matches_any(r, allowed):
-            lines = ["keeper: %s は規約にない置き場所です。" % r, "", "決めてある置き場所:"]
+            lines = ["claude-keeper: %s は規約にない置き場所です。" % r, "", "決めてある置き場所:"]
             lines += ["  %-28s %s" % (d, role) for d, role in P.layout_paths(pol)]
             lines += ["", "どれかに寄せるか、本当に新しい区分なら .claude/policy.yml の "
                           "docs.layout に足してから書いてください。"]
@@ -492,7 +492,7 @@ def cmd_guard():
         return 0
     if any(P.matches_any(r, layer["path"]) for layer in layers):
         return 0
-    lines = ["keeper: %s はどの層にも属していません。" % r, "", "決めてある層:"]
+    lines = ["claude-keeper: %s はどの層にも属していません。" % r, "", "決めてある層:"]
     lines += ["  %-14s %-28s %s" % (l["name"], " ".join(l["path"])[:28], l["role"])
               for l in layers]
     lines += ["", "どれかに寄せるか、本当に新しい層なら .claude/policy.yml の "
@@ -520,7 +520,7 @@ def main():
             return cmd_guard()
     except Exception as exc:
         if cmd in ("check", "measure", "drift", "stamp", "judge"):
-            sys.stdout.write("keeper %s に失敗: %s\n" % (cmd, exc))
+            sys.stdout.write("claude-keeper %s に失敗: %s\n" % (cmd, exc))
         return 0
     sys.stderr.write(__doc__)
     return 1

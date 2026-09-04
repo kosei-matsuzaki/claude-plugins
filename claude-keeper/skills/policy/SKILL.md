@@ -1,6 +1,6 @@
 ---
 name: policy
-description: 規約ファイル .claude/policy.yml (体制・docs・コードを 1 つにまとめたもの) を作る・読む・直すときに使う。役の決め方、文書の置き場所と記録、層と依存の向き、上限の決め方、統合前の規約からの移行。/keeper:init /keeper:refresh の実行中と、規約を手で直すときに読む。
+description: 規約ファイル .claude/policy.yml (体制・docs・コードを 1 つにまとめたもの) を作る・読む・直すときに使う。役の決め方、文書の置き場所と記録、層と依存の向き、上限の決め方、統合前の規約からの移行。/claude-keeper:init /claude-keeper:refresh の実行中と、規約を手で直すときに読む。
 ---
 
 # 規約ファイル (.claude/policy.yml) の書きかた

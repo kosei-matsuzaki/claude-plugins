@@ -1,6 +1,6 @@
 ---
 name: claude-md
-description: CLAUDE.md に何を書き、何を書かないか。全セッションで読まれるので、長さがそのまま費用になる。CLAUDE.md を新規に作る・書き直す・削るとき、および /keeper:init /refresh の実行中に読む。
+description: CLAUDE.md に何を書き、何を書かないか。全セッションで読まれるので、長さがそのまま費用になる。CLAUDE.md を新規に作る・書き直す・削るとき、および /claude-keeper:init /refresh の実行中に読む。
 ---
 
 # CLAUDE.md の書きかた
@@ -65,18 +65,18 @@ ls <書いたパス>            # ディレクトリ / ファイルが実在す�
 <書いたコマンド> --help    # そのコマンドが本当に通るか
 ```
 
-keeper が入っているなら、参照切れは機械が拾う (`/keeper:check`)。
+claude-keeper が入っているなら、参照切れは機械が拾う (`/claude-keeper:check`)。
 入っていなくても**書いたパスは自分で `ls` する。**存在しないパスは害。
 
 ## 生成した部分に印を付ける
 
-`/keeper:refresh` が書き直してよいのは、印の内側だけ。
+`/claude-keeper:refresh` が書き直してよいのは、印の内側だけ。
 
 ```markdown
-<!-- keeper:generated -->
+<!-- claude-keeper:generated -->
 ## 動かす
 ...
-<!-- /keeper:generated -->
+<!-- /claude-keeper:generated -->
 
 ## このリポジトリだけの事情
 
@@ -99,6 +99,6 @@ keeper が入っているなら、参照切れは機械が拾う (`/keeper:check
 
 ## 直したあと
 
-keeper が入っているなら `/keeper:check` を回す。生成部分に手が入った
-ことを控え直すのは `/keeper:refresh` の仕事で、控えないまま作り直すと
+claude-keeper が入っているなら `/claude-keeper:check` を回す。生成部分に手が入った
+ことを控え直すのは `/claude-keeper:refresh` の仕事で、控えないまま作り直すと
 手で書いた部分が消える。

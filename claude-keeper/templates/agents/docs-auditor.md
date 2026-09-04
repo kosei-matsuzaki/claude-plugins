@@ -18,8 +18,8 @@ skill `flat-view` に従う。**会話で聞いた話は証拠にしない。**
 3. 動かせるもの (コマンド・手順) は実際に動かす。通らなければそれが所見
 4. 機械の側も見る。**「どこから読むか」の順番としてだけ使い、判断はしない:**
    ```bash
-   K=$(ls ~/.claude/plugins/cache/*/keeper/*/scripts/k.py 2>/dev/null | head -1)
-   [ -n "$K" ] && python3 "$K" check --only docs || echo "keeper 未導入。機械の候補なしで進める"
+   K=$(ls ~/.claude/plugins/cache/*/claude-keeper/*/scripts/k.py 2>/dev/null | head -1)
+   [ -n "$K" ] && python3 "$K" check --only docs || echo "claude-keeper 未導入。機械の候補なしで進める"
    ```
 
 ## 出す
