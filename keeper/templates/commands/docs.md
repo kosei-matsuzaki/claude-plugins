@@ -10,7 +10,8 @@ argument-hint: "[ファイル名 | --since <git-ref>] [--read-only]"
 ## 1. 対象を決める
 
 ```bash
-python3 .claude/plugins/keeper/scripts/k.py check --only docs
+K=$(ls ~/.claude/plugins/cache/*/keeper/*/scripts/k.py 2>/dev/null | head -1)
+[ -n "$K" ] && python3 "$K" check --only docs || echo "keeper 未導入。機械の候補なしで進める"
 ```
 
 | 引数 | 対象 |

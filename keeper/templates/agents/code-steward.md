@@ -14,7 +14,8 @@ skill `flat-view` に従う。**自分が書いたコードでも、初めて見
 
 1. まず機械の候補を取る (**判断はしない**):
    ```bash
-   python3 .claude/plugins/keeper/scripts/k.py check --only code
+   K=$(ls ~/.claude/plugins/cache/*/keeper/*/scripts/k.py 2>/dev/null | head -1)
+[ -n "$K" ] && python3 "$K" check --only code || echo "keeper 未導入。機械の候補なしで進める"
    ```
    出た候補は「どこから読むか」の順番。**出ていないものも見る**
 2. 実物を読む。読める量に絞る (5 ファイルを最後まで > 全部を薄く)

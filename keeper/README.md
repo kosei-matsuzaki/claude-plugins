@@ -157,11 +157,17 @@ skill ではなく [templates/](templates/) に置いてある。
 | 土台のずれ | 言語・最上位ディレクトリ・依存・規模が、組んだときと違う |
 | 生成物への手直し | 次の作り直しで消える |
 
+スラッシュコマンドから使うぶんには `/keeper:check` でよい。素で叩くときは、
+**導入先のパスに版番号が入る**ので探してから呼ぶ:
+
 ```bash
-python3 .claude/plugins/keeper/scripts/k.py check
-python3 .claude/plugins/keeper/scripts/k.py check --since origin/main --strict   # CI 用
-python3 .claude/plugins/keeper/scripts/k.py measure                              # 上限を決めるとき
+K=$(ls ~/.claude/plugins/cache/*/keeper/*/scripts/k.py | head -1)
+python3 "$K" check
+python3 "$K" check --since origin/main --strict   # CI 用
+python3 "$K" measure                              # 上限を決めるとき
 ```
+
+CI で使うなら、この置き場を clone して `keeper/scripts/k.py` を直に指すほうが確実。
 
 **CI に入れるなら `--since` から始める。**既存のコード全部に当てると、
 最初の 1 回で真っ赤になって誰も見なくなる。
