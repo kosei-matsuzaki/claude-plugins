@@ -21,6 +21,10 @@ roles:
     why: 画面と docs が別々に動いて、書いてある機能が無い状態になる
     stance: このリポジトリを初めて読む人
     reads: ["README.md", "docs/**", "CLAUDE.md"]
+  - name: duplication-auditor
+    why: 同じ事実が CLAUDE.md と docs の両方に書かれ、片方だけ古くなる。書いた本人には見えない
+    stance: この 3 か月このリポジトリを触っていない人。どれが正か覚えていない
+    reads: ["README.md", "CLAUDE.md", "docs/**"]
 
   - name: code-steward
     why: 画面を足すたびに似た部品が増える。使わなくなった画面が残る
@@ -82,6 +86,8 @@ docs:
       role: いまの仕様。やらないと決めたことも書く
     - path: docs/architecture.md
       role: どう作ってあるか。設計判断とその理由
+    - path: docs/design.md
+      role: 見た目の規定。配色・余白・字送り・動き。画面はここの値だけを使う
     - path: docs/TODO.md
       role: 残作業だけ。済んだものは archive へ
     - path: docs/changelog.md
@@ -97,16 +103,46 @@ docs:
     docs/TODO.md: 120
     docs/spec.md: 200
     docs/architecture.md: 250
+    docs/design.md: 250
     docs/README.md: 150
     CLAUDE.md: 300
     README.md: 150
     docs/archive/**: 2000
     default: 400
 
+  # CLAUDE.md は毎セッション全文が読まれる。**全体の行数だけでは足りない。**
+  # 上限の内側のまま、1 つの節が設計書に育っていることがある。節ごとに見る。
+  claude_md:
+    path: CLAUDE.md
+    max_section_lines: 25   # これを超える節は docs へ出して 1 行で指す候補
+
+  # 同じ話が複数の文書に散っていないか。見出しの重なりで見る。
+  # 同じ話かどうかは読まないと決まらないので、機械は場所を並べるだけ。
+  overlap:
+    enabled: true
+    scope: ["*.md", "docs/*.md"]   # 記録 (archive) と入れ子の docs は外す
+    ignore: []                     # 重なってよい見出し (「動かす」など) を足す
+    min_docs: 2                    # 何か所に出たら言うか
+
+
+  # 同じ文が複数の文書に書かれていないか (二重管理)。字面がそろっているものだけ。
+  # 言い換えて写したものは機械に見えない。それを見るのは役 duplication-auditor。
+  duplication:
+    enabled: true
+    min_lines: 3                   # 実質のある行が何行そろったら言うか
+    min_chars: 80                  # そのかたまりの文字数がこれ未満なら数えない
+    scope: ["*.md", "docs/**"]     # 記録 (archive) は自動で外れる
+    ignore: []                     # 写しがあって正しい文書があれば
+
   # 「ここを触ったら、ここを直す」の対応表。
   # セッション中に source を変えたのに docs が動いていなければ、停止時に指摘する。
   # 疑わしいものを足さない。2〜3 本から始める。
   watch:
+    # 画面を足したら見た目の規定を見る。新しい色や余白がベタ書きで入っていないか。
+    # 画面が無いプロジェクトなら、この規則ごと消す。
+    - source: ["{{画面のあるところ}}/**"]
+      docs: ["docs/design.md"]
+      why: 画面が動いた。規定に無い値が増えていないか
     - source: []
       docs: []
       why: ""

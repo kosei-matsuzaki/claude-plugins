@@ -26,6 +26,46 @@ notify:
 judgments:
   regrow: 0.3
 
+# ------------------------------------------------------------------ docs
+# この置き場は md が本体 (規約・役・コマンドの雛形が全部 md)。
+# 二重管理がいちばん起きやすいので、そこだけを見張る。
+docs:
+  # 索引は置かない。雛形は「読む文書」ではなく写される部品で、
+  # 1 枚の索引に 20 本並べても誰も辿らない。
+
+  layout:
+    - path: README.md
+      role: 何をするものか。仕組みと置いてあるものの一覧
+    - path: claude-keeper/README.md
+      role: claude-keeper 単体の説明。使い方と規約の形
+    - path: claude-keeper/commands/
+      role: claude-keeper 自身のコマンド (init / refresh / check)
+    - path: claude-keeper/skills/
+      role: init と refresh が読む規約
+    - path: claude-keeper/templates/
+      role: 生成物の雛形。ここが写されてプロジェクトに置かれる
+
+  limits:
+    README.md: 120
+    default: 300
+
+  # 雛形と説明で同じことを書きやすい。**言い換えて写したものは出ない**ので、
+  # 0 件を健全と読まない。
+  duplication:
+    enabled: true
+    min_lines: 3
+    min_chars: 80
+    scope: ["*.md", "claude-keeper/**/*.md"]
+
+  # 見出しの重なり。雛形どうしは節の名前がそろっているのが正しいので外す。
+  overlap:
+    enabled: true
+    scope: ["*.md", "claude-keeper/README.md"]
+
+  guard:
+    enabled: true
+    scope: ["*.md"]
+
 # ------------------------------------------------------------------ code
 code:
   # 「入口 (フックから呼ばれるもの) は部品を使う。部品は入口を知らない」だけを見張る。

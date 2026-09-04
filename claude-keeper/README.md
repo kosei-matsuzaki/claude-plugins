@@ -12,8 +12,10 @@
 |---|---|
 | 新しいリポジトリで、毎回ゼロから Claude 用の下ごしらえをする | `/claude-keeper:init` 1 本 |
 | docs が実装から離れる・散る・伸びる | 生成される `/docs` + 役 `docs-auditor` |
+| 同じ事実が CLAUDE.md と docs の両方にあり、片方だけ古くなる | skill `single-source` + 役 `duplication-auditor` |
 | コードが伸びる・散る・崩れる・残る | 生成される `/code` + 役 `code-steward` |
 | 作った本人しかいないので、機能の筋を疑う人がいない | 役 `critic` `user-voice` |
+| 見た目を好みで決めてしまう / 既定のテンプレートに見える | 生成される `/design` + `docs/design.md` |
 | 差分を読まないままコミットが積み上がる | 生成される `/ship` + 役 `reviewer` |
 | 収益を求めているのに、機能ばかり足している | 役 `marketer` + `/market` |
 | 組んだ `.claude/` が腐る(消えたパスを指し続ける) | 参照切れの検出 / `/claude-keeper:refresh` |
@@ -103,11 +105,13 @@ claude-keeper が持つのは **3 本だけ**。組む・診る・組み直す�
 | `/code` | 伸びた・散った・崩れた・残ったところを直す | 一区切りついたとき |
 | `/ship` | 差分をレビューし、コミットの切り方まで決める | コミット前 |
 | `/critique` | 専門家・使う人として機能と方針にコメント | 機能を足す前 |
+| `/design` | 見た目の方向を決めて規定に落とし、画面に当てる | 画面を作るとき / 刷新するとき |
 | `/routine` | 定期で走らせるものを決めて仕掛ける | 忘れるとき |
 | `/market` | 届いていない理由を切り分ける | `marketer` を置いたときだけ |
 
-規約も 4 本写す — `flat-view`(読み方)/ `claude-md`(CLAUDE.md の書き方)/
-`docs-style`(文体)/ `code-comments`(コメント)。
+規約も 5 本写す — `flat-view`(読み方)/ `claude-md`(CLAUDE.md の書き方)/
+`docs-style`(文体)/ `single-source`(同じ事実を 2 か所に書かない)/
+`code-comments`(コメント)。
 **写すものは 1 文字も変えない。**書き換えるのは役とコマンドだけ。
 
 claude-keeper 自身が持つ skill は [policy](skills/policy/SKILL.md) **1 本だけ** —
@@ -128,8 +132,8 @@ skill ではなく [templates/](templates/) に置いてある。
   policy.yml       規約 1 つ (体制 + docs + code)
   judgments.yml    判断台帳 1 つ
   agents/          役 4〜6
-  skills/          flat-view / claude-md / docs-style / code-comments
-  commands/        standup docs code ship critique routine [market]
+  skills/          flat-view / claude-md / docs-style / single-source / code-comments
+  commands/        standup docs code ship critique routine [design] [market]
   manifest.json    生成物の指紋 (機械が書く)
 ```
 
@@ -177,6 +181,16 @@ CI で使うなら、この置き場を clone して `claude-keeper/scripts/k.py
 「なぜ」か言い換えか、docs に書いてあることが正しいか、**この規模にその構造が
 合っているか** — これらは `/standup` `/code` `/docs` `/critique` が読んで決める。
 
+**ファイル 1 つを見る検査だけでは、散らばりと二重管理が通る。**置き場所も
+行数も索引も規約どおりで、仕様だけが 3 つの文書に分かれている状態がそれ。
+これを捕まえるのは `docs.overlap`(同じ見出し)/ `docs.duplication`(同じ字面)/
+`docs.claude_md`(CLAUDE.md の節が設計書に育っている)の 3 つ。
+
+**3 つとも出すのは場所だけ。**同じ事実かどうかは「変わるときに一緒に変わるか」で
+決まり、それは読まないと分からない。決めるのは `/docs` と役
+`duplication-auditor`。**言い換えて写した二重管理は機械には 1 件も出ない** —
+そこがいちばん見つけにくく、役を置いてある理由。
+
 ## 判断台帳 (.claude/judgments.yml)
 
 「このままでよい」「いまは直さない」と決めたことを覚えておく場所。
@@ -218,6 +232,8 @@ docs:
   index: docs/README.md      # 索引に無い記録は、無いのと同じ
   layout: [...]              # 置き場所と役割
   watch: [...]               # 「ここを触ったらここを直す」
+  claude_md: { max_section_lines: 25 }   # 上限の内側で節が設計書に育つのを捕まえる
+  overlap: { enabled: true }             # 同じ見出しが複数の文書に出ていないか
 
 code:
   scope: { include: [...], exclude: ["**/*.g.dart"] }   # 生成物は必ず外す
@@ -225,11 +241,9 @@ code:
   limits: { file_lines: 800, function_lines: 80 }       # 実測の 90% 点から
 ```
 
-うるさいと感じたら順に:
-台帳に書く(1 件ずつ、期限つきで)→ 上限を実測に合わせる →
-**生成物が `code.scope.exclude` から漏れていないか** → `duplication.similar` を上げる →
-`code.dead.entrypoints` を足す → `docs.watch` を減らす。
-全部黙らせるなら `notify.enabled: false`。
+**うるさいと感じたときの順番**は skill
+[policy](skills/policy/SKILL.md) の「うるさいと感じたら」にある。
+いちばん多いのは、生成物が `code.scope.exclude` から漏れていること。
 
 ### 統合前の規約からの移行
 

@@ -44,11 +44,35 @@ git diff HEAD -- <パス>
 
 | 変わったこと | 見直すもの |
 |---|---|
-| 画面・入口ができた | `user-voice` を足すか |
+| 画面・入口ができた | `user-voice` を足すか。`/design` と `docs/design.md` も |
 | 使う人が自分だけになった | `user-voice` を外すか |
 | 収益を求め始めた / やめた | `marketer` と `/market` を足す / 外す |
 | ソースが大きく増えた | `code.scope` / `code.layers` / 上限を測り直す |
 | docs の置き場所が変わった | `docs.layout` / `docs.index` |
+| 規約に無い節が雛形に増えた | 雛形から**その節ごと写す**(下) |
+
+### 雛形に増えた節を写す
+
+`${CLAUDE_PLUGIN_ROOT}/templates/*-policy.yml` と `.claude/policy.yml` の
+キーを見比べ、**規約に無い節があれば写す。**既定値で動いてはいるが、
+規約に書いていない設定は**次に読む人に見えない**ので直せない。
+
+いま写す対象:
+
+| 写すもの | 何のため |
+|---|---|
+| `docs.claude_md` / `docs.overlap` / `docs.duplication` | 散らばりと二重管理を見る |
+| `.claude/skills/single-source/SKILL.md` | 同じ事実を 2 か所に書かせない(予防) |
+| `.claude/agents/duplication-auditor.md` + `roles:` の 1 行 | 二重管理を探す役(検知) |
+| `.claude/commands/design.md` + `docs/design.md` | 見た目を決めて画面に当てる(**画面があるときだけ**) |
+
+**役を足したら `roles:` にも書く。**ファイルだけ置くと `check` が
+「体制に無い agent」と言い続ける。docs が 1 枚しか無いリポジトリでは
+`duplication-auditor` を置かない(突き合わせる相手がいない)。
+
+- **値は雛形のまま写す。**このリポジトリに合わないと分かってから緩める
+- 写したら `check --only docs` を回す。**新しく出た指摘は `/docs` の仕事**で、
+  ここでは直さない。件数と中身を報告に載せる
 
 **足す役より、外す役を先に考える。**一度も呼ばれていない役は、
 要らなかったのではなく**呼ばれ方が分からなかった** — 外すか、command から名指しで呼ぶ。
