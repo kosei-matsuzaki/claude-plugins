@@ -29,6 +29,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/k.py" check $ARGUMENTS
 |---|---|
 | 長すぎる / 重なっている / 使われていない | `/code`(**読んでから**決める) |
 | 長すぎる文書 / 索引漏れ / 規約外の置き場所 / 文書が動いていない | `/docs` |
+| **規約にあるが実在しない置き場所** | **規約の書き間違い。**`.claude/policy.yml` を直す |
 | 同じ話が複数の文書にある / CLAUDE.md の伸びた節 | `/docs`(**読み比べてから寄せ先を決める**) |
 | 同じ文が複数の文書にある (二重管理) | `/docs` → 役 `duplication-auditor` |
 | 参照切れ・雛形の埋め残し | `/claude-keeper:refresh` |

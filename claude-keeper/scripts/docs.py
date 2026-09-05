@@ -190,6 +190,29 @@ def stray_findings(pol, docs):
     ]
 
 
+def layout_findings(root, pol):
+    """規約が置き場所として挙げているのに、実在しないもの。
+
+    **規約は現状の写しでなければ意味がない。**実在しない場所が載っていると、
+    guard はそこへの書き込みを許し、watch はそこが未更新だと言い続ける。
+    どちらも「あるはずのもの」を前提にした嘘の指摘になる。
+    """
+    out = []
+    for path, _ in P.layout_paths(pol):
+        if any(c in path for c in "*?{"):
+            continue                      # 場所ではなく形の指定。実在を問わない
+        full = os.path.join(root, path)
+        if path.endswith("/"):
+            ok = os.path.isdir(full.rstrip("/"))
+        else:
+            ok = os.path.exists(full)
+        if not ok:
+            out.append(rec(path, "layout:" + path,
+                           "規約の docs.layout に %s があるが、実在しない" % path,
+                           "/docs"))
+    return out
+
+
 def watch_findings(pol, changed):
     """触った実装に対して、対応する文書が動いていない。"""
     out = []

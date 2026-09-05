@@ -131,6 +131,7 @@ def docs_sections(root, pol, sifter, since):
     if missing:
         out += sifter.section("索引が指しているのに存在しない", missing)
     out += sifter.section("規約にない置き場所", D.stray_findings(sub, found))
+    out += sifter.section("規約にあるが実在しない置き場所", D.layout_findings(root, sub))
     out += sifter.section("同じ話が複数の文書にある", D.overlap_findings(root, sub, found))
     out += sifter.section("同じ文が複数の文書にある (二重管理)",
                           D.duplicate_findings(root, sub, found))
