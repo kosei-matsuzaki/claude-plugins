@@ -35,6 +35,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/k.py" check $ARGUMENTS
 | 自立していないところ | `/claude-keeper:refresh` |
 | 生成物への手直し | 中身を読む。**手で直した内容のほうが正しいことが多い** |
 | 統合前の規約 / 台帳が残っている | `/claude-keeper:init` が 1 つにまとめる |
+| 同じ指摘が何度直しても出続ける | **決め方のほうがずれている。**`/code --renew` / `/docs --renew` |
 
 ## 外れていたら黙らせる
 
