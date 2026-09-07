@@ -2,7 +2,7 @@
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "claude-keeper",
   "description": "リポジトリに Claude を導入する入口。現状を測って規約を作り、このプロジェクトに要る役・規約・コマンドを .claude/ に生成する。docs が古びる・コードが伸びて散る・機能の筋を疑う人がいない、を 1 つの仕組みで見張る。",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": {
     "name": "kosei-matsuzaki",
     "email": "sunlight.michishirube@gmail.com"
