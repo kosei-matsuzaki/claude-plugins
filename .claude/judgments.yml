@@ -4,6 +4,13 @@
 # until を書くと、その日を過ぎたときにもう一度言う。運営の判断はたいてい期限付き。
 
 judgments:
+  - key: "history:claude-keeper/README.md"
+    path: claude-keeper/README.md
+    decision: "直さない"
+    why: "履歴の説明の中に、悪い例として日付入りの一文を引いている。例を消すと何を捕まえる検査か分からなくなる"
+    until: 2027-03-01
+    date: 2026-09-07
+    by: "/claude-keeper:check"
   - key: "dup:claude-keeper/commands/init.md|claude-keeper/commands/refresh.md"
     path: claude-keeper/commands/init.md
     decision: "写したままにする"

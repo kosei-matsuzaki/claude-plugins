@@ -64,6 +64,7 @@ git diff HEAD -- <パス>
 | 写すもの | 何のため |
 |---|---|
 | `docs.claude_md` / `docs.overlap` / `docs.duplication` | 散らばりと二重管理を見る |
+| `docs.history` | 正典に混ざった開発の履歴を見る |
 | `.claude/skills/single-source/SKILL.md` | 同じ事実を 2 か所に書かせない(予防) |
 | `.claude/agents/duplication-auditor.md` + `roles:` の 1 行 | 二重管理を探す役(検知) |
 | `.claude/commands/design.md` + `docs/design.md` | 見た目を決めて画面に当てる(**画面があるときだけ**) |

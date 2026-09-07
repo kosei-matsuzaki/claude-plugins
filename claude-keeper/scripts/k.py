@@ -136,6 +136,8 @@ def docs_sections(root, pol, sifter, since):
     out += sifter.section("同じ文が複数の文書にある (二重管理)",
                           D.duplicate_findings(root, sub, found))
     out += sifter.section("CLAUDE.md の伸びた節 (docs へ出す候補)", D.section_findings(root, sub))
+    out += sifter.section("正典に混ざった開発の履歴 (記録へ出す候補)",
+                          D.history_findings(root, sub, found))
     out += sifter.section("変更に対して文書が動いていない",
                           D.watch_findings(sub, changed_paths(root, since)))
     return out

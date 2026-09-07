@@ -204,6 +204,12 @@ CI で使うなら、この置き場を clone して `claude-keeper/scripts/k.py
 `duplication-auditor`。**言い換えて写した二重管理は機械には 1 件も出ない** —
 そこがいちばん見つけにくく、役を置いてある理由。
 
+**散らばりが横に広がるのに対して、履歴は時間で溜まる。**`/docs` の既定は
+「実装に合わせる」= 追記なので、変更のたびに「2026-09-04 に〜へ変更した」が
+仕様書へ流れ込む。1 回ごとは 2 行なので誰も止めず、行数の上限も通る
+(履歴混じりの 180 行は上限 200 行の内側)。これを捕まえるのが `docs.history`。
+**消すのではなく、現在形に直すか記録へ移す。**
+
 ## 判断台帳 (.claude/judgments.yml)
 
 「このままでよい」「いまは直さない」と決めたことを覚えておく場所。
@@ -247,6 +253,7 @@ docs:
   watch: [...]               # 「ここを触ったらここを直す」
   claude_md: { max_section_lines: 25 }   # 上限の内側で節が設計書に育つのを捕まえる
   overlap: { enabled: true }             # 同じ見出しが複数の文書に出ていないか
+  history: { enabled: true }             # 正典に開発の履歴が混ざっていないか
 
 code:
   scope: { include: [...], exclude: ["**/*.g.dart"] }   # 生成物は必ず外す
@@ -260,7 +267,7 @@ code:
 
 ### 統合前の規約からの移行
 
-`docs-keeper` と `code-keeper` は claude-keeper に統合した(2026-09-04)。
+`docs-keeper` と `code-keeper` は claude-keeper に統合されている。
 **規約ファイルはそのまま読める** — `docs/.docs-policy.yml` と `.code-policy.yml` が
 残っていれば `docs:` / `code:` として扱い、判断台帳
 (`.code-keeper/judgments.yml` / `.claude/crew-judgments.yml`)も引き継ぐ。

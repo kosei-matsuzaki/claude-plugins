@@ -34,7 +34,7 @@ GitHub 版と両方入れると衝突するので、どちらか片方にする�
 
 ## 統合前から使っていたリポジトリ
 
-`docs-keeper` と `code-keeper` は claude-keeper に統合した(2026-09-04)。
+`docs-keeper` と `code-keeper` は claude-keeper に統合されている。
 **規約ファイルはそのまま読める** — `docs/.docs-policy.yml` と `.code-policy.yml` が
 残っていれば `docs:` / `code:` として扱い、判断台帳も引き継ぐ。
 `/claude-keeper:init` が `.claude/policy.yml` 1 つへの移行を提案する

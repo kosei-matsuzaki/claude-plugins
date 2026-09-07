@@ -62,6 +62,12 @@ docs:
     enabled: true
     scope: ["*.md", "claude-keeper/README.md"]
 
+  # 正典に開発の履歴が溜まっていないか。**雛形は見ない** —
+  # 悪い例として日付入りの行を載せているので、見ると鳴り続ける。
+  history:
+    enabled: true
+    scope: ["*.md", "claude-keeper/README.md"]
+
   guard:
     enabled: true
     scope: ["*.md"]

@@ -410,3 +410,93 @@ def duplicate_findings(root, pol, docs):
                         "%s と %s に同じ %d 行 (「%s…」)" % (ra, rb, n, head[:24]),
                         "/docs", value=n))
     return recs
+
+
+# ------------------------------------------------- 正典に混ざった履歴を探す
+
+# 「いつ・何を・何から何へ変えたか」を書いている行。仕様書・設計書の仕事ではない。
+# **足すときは、いまの姿を書いた文に当たらないかを先に確かめる。**
+# ここが鳴りすぎると、次に本当に履歴が混ざったときに読まれなくなる。
+_HIST = [
+    (re.compile(r"(?:19|20)\d{2}\s*[-/年]\s*\d{1,2}\s*[-/月]\s*\d{1,2}\s*日?"
+                r"|(?:19|20)\d{2}\s*年\s*\d{1,2}\s*月"), "日付"),
+    (re.compile(r"以前は|従来は|もともと|元々|かつて|当初|これまでは|昔は"
+                r"|旧(?:仕様|版|実装|名|設計|方式|構成)"
+                r"|previously|used to be|formerly|prior to"), "以前の姿"),
+    (re.compile(r"だったが|でしたが|していたが"
+                r"|(?:変更|改名|移行|置き換え|削除|廃止|統合)し(?:た|ました)(?!ら)"
+                r"|に変えた(?!ら)|にリネームした"
+                r"|no longer|was renamed|deprecated in"), "変えた経緯"),
+    (re.compile(r"v?\d+\.\d+(?:\.\d+)?\s*(?:から|より|以降|時点|で追加|で変更|で廃止)"
+                r"|as of (?:19|20)\d{2}"), "版を起点にした記述"),
+]
+MAX_HIST_SHOWN = 3
+
+# 履歴を書くのが仕事の文書。規約に history.allow が無いリポジトリでも、
+# ここだけは既定で外す。**changelog を叱る検査は、次から誰にも読まれない。**
+DEFAULT_HIST_ALLOW = [
+    "**/changelog.md", "**/CHANGELOG.md", "**/CHANGELOG",
+    "**/archive/**",            # archive.dir を書いていない規約のための保険
+    "**/TODO.md",               # 残作業。日付は期限であって履歴ではない
+    "**/design-review.md", "docs/release/**", "docs/experiments/**",
+]
+
+
+def history_lines(root, relpath):
+    """(行番号, 何に当たったか) の一覧。コードブロックの中は数えない。"""
+    if not relpath.lower().endswith(".md"):
+        return []
+    out, fenced = [], False
+    try:
+        with open(os.path.join(root, relpath), encoding="utf-8", errors="replace") as fh:
+            for n, line in enumerate(fh, 1):
+                if FENCE.match(line):
+                    fenced = not fenced
+                    continue
+                if fenced:
+                    continue
+                t = norm_line(line)      # リンク先の path に入った日付を落とす
+                if len(t) < MIN_LINE_CHARS:
+                    continue
+                for pat, why in _HIST:
+                    if pat.search(t):
+                        out.append((n, why))
+                        break
+    except Exception:
+        return []
+    return out
+
+
+def history_findings(root, pol, docs):
+    """正典に開発の履歴が書かれている。**仕様書は、いまの姿だけを持つ。**
+
+    /docs の既定の流れは「実装に合わせる」= 追記なので、変更のたびに
+    「いつ何をこう変えた」が仕様書へ流れ込む。**1 回ごとには小さいので
+    誰も止めない。**止まらないまま溜まると、いまの姿を読むのに履歴を
+    かき分けることになり、仕様書としては死ぬ。
+
+    行数の上限では捕まらない — 履歴が混ざった 180 行は上限 200 行を通る。
+    履歴を書いてよい文書 (記録・changelog) は `history.allow` で外す。
+    """
+    if not P.opt(pol, "history.enabled", True):
+        return []
+    scope = P.opt(pol, "history.scope", ["*.md", "docs/**"])
+    allow = P.opt(pol, "history.allow", DEFAULT_HIST_ALLOW)
+    allow = DEFAULT_HIST_ALLOW if allow is None else list(allow)
+    where = archive_dir(pol) or "記録 (archive)"
+    out = []
+    for m in docs:
+        if in_archive(pol, m) or not P.matches_any(m, scope) or P.matches_any(m, allow):
+            continue
+        hits = history_lines(root, m)
+        if not hits:
+            continue
+        at = ",".join(str(n) for n, _ in hits[:MAX_HIST_SHOWN])
+        if len(hits) > MAX_HIST_SHOWN:
+            at += " ほか"
+        kinds = sorted({why for _, why in hits})
+        out.append(rec(m, "history:" + m,
+                       "%s:%s に開発の履歴 %d 行 (%s)。%s へ出し、いまの姿だけ残す"
+                       % (m, at, len(hits), " / ".join(kinds), where),
+                       "/docs", line=hits[0][0], value=len(hits)))
+    return out
